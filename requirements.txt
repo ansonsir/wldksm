@@ -1,0 +1,28 @@
+# 网络扫描工具依赖
+# 安装命令: pip install -r requirements.txt
+
+# Web框架
+Flask>=2.0.0
+flask-cors>=4.0.0
+
+# 报告生成
+docxtpl>=0.16.0
+python-docx>=0.8.11
+
+# 配置解析
+PyYAML>=6.0
+
+# 定时任务
+APScheduler>=3.10.0
+pytz>=2023.3
+
+# 认证与安全
+bcrypt>=4.0.0
+PyJWT>=2.8.0
+pyotp>=2.9.0
+captcha>=0.5.0
+flask-login>=0.6.3
+flask-limiter>=3.5.0
+flask-talisman>=1.1.0
+Pillow>=10.0.0
+qrcode>=7.4.2

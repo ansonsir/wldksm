@@ -1,0 +1,298 @@
+/* ========================================
+   ScanScript v4.0 - 全局样式系统
+   ======================================== */
+
+/* --- 设计令牌 --- */
+:root {
+  /* 品牌色 */
+  --brand-primary: #409eff;
+  --brand-primary-light: #66b1ff;
+  --brand-primary-dark: #337ecc;
+  --brand-success: #67c23a;
+  --brand-warning: #e6a23c;
+  --brand-danger: #f56c6c;
+  --brand-info: #909399;
+
+  /* 中性色 */
+  --neutral-bg: #f5f7fa;
+  --neutral-bg-dark: #ebeef5;
+  --neutral-border: #e4e7ed;
+  --neutral-text: #606266;
+  --neutral-text-light: #909399;
+  --neutral-text-dark: #303133;
+  --neutral-white: #ffffff;
+
+  /* 侧边栏/头部 */
+  --sidebar-bg: #1d1e2c;
+  --sidebar-hover: #262738;
+  --sidebar-active: rgba(64, 158, 255, 0.12);
+  --header-bg: #ffffff;
+  --header-border: #e8eaed;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 20px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+
+  /* 过渡 */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.35s ease;
+
+  /* 字体 */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+/* --- 全局重置 --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--neutral-text);
+  background: var(--neutral-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- 滚动条美化 --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #c0c4cc;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #909399;
+}
+
+/* --- Element Plus 全局覆盖 --- */
+.el-card {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--neutral-border) !important;
+  box-shadow: var(--shadow-card) !important;
+  transition: box-shadow var(--transition-normal);
+}
+.el-card:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+.el-card__header {
+  background: #fafbfc;
+  border-bottom: 1px solid var(--neutral-border);
+  padding: 14px 20px;
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+.el-card__body {
+  padding: 20px;
+}
+
+.el-table {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.el-table th.el-table__cell {
+  background: #fafbfc;
+  font-weight: 600;
+  color: var(--neutral-text-dark);
+  font-size: 13px;
+  border-bottom: 2px solid var(--neutral-border);
+}
+.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
+  background: #fafbfc;
+}
+
+.el-button--primary {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+.el-button--primary:hover {
+  background: var(--brand-primary-light);
+  border-color: var(--brand-primary-light);
+}
+
+.el-tag {
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+.el-dialog {
+  border-radius: var(--radius-lg);
+}
+.el-dialog__header {
+  background: #fafbfc;
+  border-bottom: 1px solid var(--neutral-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 16px 24px;
+  margin: 0;
+}
+.el-dialog__title {
+  font-weight: 600;
+  font-size: 16px;
+}
+.el-dialog__body {
+  padding: 24px;
+}
+
+.el-tabs__item {
+  font-weight: 500;
+}
+
+.el-form-item__label {
+  font-weight: 500;
+  color: var(--neutral-text-dark);
+}
+
+.el-progress-bar__outer {
+  border-radius: 10px;
+}
+
+/* --- 通用工具类 --- */
+.page-container {
+  padding: 0;
+  max-width: 1600px;
+}
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+  padding: 0 0 var(--spacing-md);
+  border-bottom: 1px solid var(--neutral-border);
+}
+.page-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--neutral-text-dark);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.page-header h2 .icon {
+  color: var(--brand-primary);
+  font-size: 22px;
+}
+.page-header .subtitle {
+  font-size: 13px;
+  color: var(--neutral-text-light);
+  margin-top: 4px;
+  font-weight: 400;
+}
+.page-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* 卡片包裹容器 */
+.card-wrapper {
+  background: var(--neutral-white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-border);
+  box-shadow: var(--shadow-card);
+}
+.card-wrapper-body {
+  padding: 20px;
+}
+
+/* 统计数字动画 */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-count {
+  animation: countUp 0.4s ease both;
+}
+
+/* 页面过渡动画 */
+.page-enter-active {
+  animation: pageIn 0.25s ease;
+}
+.page-leave-active {
+  animation: pageOut 0.2s ease;
+}
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pageOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-4px); }
+}
+
+/* 面包屑 */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--neutral-text-light);
+  margin-bottom: var(--spacing-md);
+}
+.breadcrumb a {
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+.breadcrumb .sep {
+  color: #c0c4cc;
+}
+
+/* 统计徽标数 */
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+.stat-badge.blue  { background: var(--brand-primary); }
+.stat-badge.green { background: var(--brand-success); }
+.stat-badge.orange { background: var(--brand-warning); }
+.stat-badge.red   { background: var(--brand-danger); }
+
+/* 操作按钮组 */
+.action-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+}

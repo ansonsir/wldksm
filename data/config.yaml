@@ -1,0 +1,26 @@
+ip_range_file: data/ip_ranges.txt,data/redarea.txt
+exclude_ips_file: data/excludes.txt
+ports_file: data/ports.txt
+save_result_file: data/scan_results.txt
+template_file: data/templates/default.docx
+redarea_file: data/redarea.txt
+log_file: logs/network_scan.log
+max_workers: 10
+ulimit: 15000
+timeout: 700
+batch_size: 14000
+ports: null
+report_prefix: ''
+report_suffix: _网络高危端口扫描报告
+scan_mode: normal
+db_path: data/scan_data.db
+template_dir: data/templates
+report_dir: data/reports
+smtp_server: cmail.nuctech.com
+smtp_port: 465
+smtp_user: secauditor
+smtp_password: ''
+# smtp_password 请通过环境变量 SMTP_PASSWORD 设置，不再写入配置文件
+smtp_ssl: 1
+default_sender: SecAuditor@nuctech.com
+default_recipients: yangqiding01@nuctech.com

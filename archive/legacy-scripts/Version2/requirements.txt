@@ -1,0 +1,16 @@
+# 网络扫描工具依赖
+# 安装命令: pip install -r requirements.txt
+
+# 核心依赖
+docxtpl>=0.16.0          # Word报告生成
+Jinja2>=3.0.0            # 模板引擎（docxtpl依赖）
+python-docx>=0.8.11      # Word文档处理
+
+# 可选依赖
+PyYAML>=6.0              # YAML配置文件支持（可选）
+
+# 开发依赖（可选）
+# pytest>=7.0.0          # 单元测试
+# pytest-cov>=4.0.0      # 测试覆盖率
+# black>=22.0.0          # 代码格式化
+# flake8>=5.0.0          # 代码检查

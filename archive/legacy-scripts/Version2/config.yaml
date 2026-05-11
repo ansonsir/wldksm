@@ -1,0 +1,30 @@
+# 网络扫描工具配置文件示例
+# 复制此文件为 config.yaml 并修改参数
+
+# 文件路径配置
+ip_range_file: "ip_range.txt"
+exclude_ips_file: "exclude_ips.txt"
+ports_file: "ports.txt"
+save_result_file: "scan_results.txt"
+template_file: "template.docx"
+redarea_file: "redArea_ips.txt"
+log_file: "network_scan.log"
+
+# 数据库配置
+db_path: "scan_data.db"           # SQLite数据库文件路径
+template_dir: "templates"         # 模板文件目录
+
+# 扫描参数配置
+max_workers: 32
+ulimit: 32768
+
+# 端口配置（直接指定端口，不从文件读取）
+# ports: "22,80,443,3389"
+ports: null  # null 表示从 ports_file 读取
+
+# 报告配置
+report_prefix: ""
+report_suffix: "_网络高危端口扫描报告"
+
+# 扫描模式: 'normal' 或 'redarea'
+scan_mode: "normal"
