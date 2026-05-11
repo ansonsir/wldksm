@@ -153,7 +153,6 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
 import api from '@/api'
-import axios from 'axios'
 
 const allRecords = ref([])
 const selectedRecords = ref([])
@@ -263,7 +262,7 @@ const handleDetailClose = () => {
 const downloadReport = async (path) => {
   if (!path) return ElMessage.warning('路径为空')
   try {
-    const res = await axios.post('/api/reports/download', { path }, { responseType: 'blob' })
+    const res = await api.post('/api/reports/download', { path }, { responseType: 'blob' })
     const url = window.URL.createObjectURL(new Blob([res.data]))
     const a = document.createElement('a')
     a.href = url; a.download = path.split('/').pop()

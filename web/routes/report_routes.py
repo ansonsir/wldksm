@@ -204,6 +204,7 @@ def send_report_mail():
 # ==================== 模板管理 ====================
 
 @report_bp.route('/api/templates', methods=['GET'])
+@require_auth
 def get_templates():
     """获取模板列表"""
     try:
@@ -216,6 +217,7 @@ def get_templates():
 
 
 @report_bp.route('/api/templates/upload', methods=['POST'])
+@require_auth
 def upload_template():
     """上传模板文件"""
     try:
@@ -227,13 +229,33 @@ def upload_template():
         if file.filename == '':
             return jsonify({'success': False, 'message': '文件名为空'}), 400
 
-        if not file.filename.endswith('.docx'):
+        # 1. 检查扩展名
+        if not file.filename.lower().endswith('.docx'):
             return jsonify({'success': False, 'message': '只支持 .docx 文件'}), 400
+
+        # 2. 验证文件头（ZIP魔术字节）
+        file_content = file.read(8)
+        file.seek(0)
+        if file_content[:4] != b'PK\x03\x04':
+            return jsonify({'success': False, 'message': '文件不是有效的 DOCX 格式'}), 400
+
+        # 3. 安全文件名（防止路径穿越）
+        import uuid, re
+        safe_name = Path(file.filename).name
+        safe_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', safe_name)
+        if safe_name != Path(file.filename).name:
+            safe_name = f"{uuid.uuid4().hex}_{safe_name}"
 
         template_dir = project_root / "data" / "templates"
         template_dir.mkdir(parents=True, exist_ok=True)
 
-        save_path = template_dir / file.filename
+        # 4. 确保保存路径在 template_dir 下
+        save_path = (template_dir / safe_name).resolve()
+        try:
+            save_path.relative_to(template_dir.resolve())
+        except ValueError:
+            return jsonify({'success': False, 'message': '非法的文件路径'}), 403
+
         file.save(str(save_path))
 
         db_manager, _ = _get_services()
@@ -246,6 +268,7 @@ def upload_template():
 
 
 @report_bp.route('/api/templates/delete', methods=['POST'])
+@require_auth
 def delete_template():
     """删除模板"""
     try:
@@ -273,6 +296,7 @@ def delete_template():
 
 
 @report_bp.route('/api/templates/preview', methods=['POST'])
+@require_auth
 def preview_template():
     """预览模板内容"""
     try:

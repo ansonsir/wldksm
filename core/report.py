@@ -2,8 +2,8 @@
 报告生成模块
 基于 Version2，保留现有端口分类判断逻辑
 """
-import ast
 import time
+import json
 import logging
 from pathlib import Path
 from typing import Dict, List, Set, Optional, Any
@@ -138,7 +138,7 @@ class ReportDataAnalyzer:
             return False
 
     def _parse_result_line(self, line: str) -> Optional[DeviceInfo]:
-        """解析单行扫描结果"""
+        """解析单行扫描结果 - 安全版本"""
         parts = line.split()
         if len(parts) < 2:
             return None
@@ -155,14 +155,23 @@ class ReportDataAnalyzer:
 
         try:
             if ports_str.startswith('[') and ports_str.endswith(']'):
-                ports = ast.literal_eval(ports_str)
+                # 安全解析：优先 JSON，回退手动解析（拒绝 ast.literal_eval）
+                try:
+                    ports = json.loads(ports_str)
+                except json.JSONDecodeError:
+                    # 回退：手动拆分逗号分隔的数字
+                    inner = ports_str.strip('[]')
+                    ports = [int(p.strip()) for p in inner.split(',') if p.strip()]
             else:
                 ports = [int(p.strip()) for p in ports_str.split(',') if p.strip()]
 
             if not isinstance(ports, (list, tuple)):
                 return None
 
-            ports = [int(p) for p in ports]
+            # 验证端口范围
+            ports = [int(p) for p in ports if 1 <= int(p) <= 65535]
+            if not ports:
+                return None
             return DeviceInfo(ip=ip, ports=ports)
 
         except (ValueError, SyntaxError) as e:

@@ -62,9 +62,63 @@ class ScanConfig:
     def __post_init__(self):
         """初始化后处理"""
         self.work_dir = Path.cwd()
+        # 安全检查：确保文件路径不逃逸项目目录
+        self._resolve_safe_paths()
         Path(self.template_dir).mkdir(parents=True, exist_ok=True)
         Path(self.report_dir).mkdir(parents=True, exist_ok=True)
         Path(self.log_file).parent.mkdir(parents=True, exist_ok=True)
+
+    def _resolve_safe_paths(self):
+        """
+        安全路径解析：确保所有文件路径都在项目目录内
+        使用 resolve() 解析符号链接和相对路径，然后验证路径前缀
+        """
+        base_dir = DEFAULT_BASE_DIR.resolve()
+        path_attrs = [
+            'ip_range_file', 'exclude_ips_file', 'ports_file',
+            'save_result_file', 'template_file', 'redarea_file',
+            'log_file', 'db_path', 'template_dir', 'report_dir'
+        ]
+        for attr in path_attrs:
+            raw_path = getattr(self, attr, '')
+            if not raw_path:
+                continue
+            try:
+                # 处理逗号分隔的多文件路径（如ip_range_file）
+                if attr == 'ip_range_file' and ',' in raw_path:
+                    resolved_parts = []
+                    for part in raw_path.split(','):
+                        part = part.strip()
+                        if not part:
+                            continue
+                        resolved = self._resolve_one_path(str(base_dir / part))
+                        resolved_parts.append(resolved)
+                    setattr(self, attr, ','.join(resolved_parts))
+                else:
+                    resolved = self._resolve_one_path(str(base_dir / raw_path))
+                    setattr(self, attr, resolved)
+            except ValueError as e:
+                import logging
+                logging.getLogger("ConfigManager").warning(
+                    f"路径安全校验失败，使用默认路径: {attr}={raw_path}, 原因: {e}"
+                )
+
+    @staticmethod
+    def _resolve_one_path(file_path: str) -> str:
+        """
+        解析并验证单个路径，确保不逃逸项目目录
+        
+        Raises:
+            ValueError: 路径逃逸项目目录时抛出
+        """
+        base_dir = DEFAULT_BASE_DIR.resolve()
+        resolved = Path(file_path).resolve()
+        # 检查路径是否在项目目录内
+        try:
+            resolved.relative_to(base_dir)
+        except ValueError:
+            raise ValueError(f"路径 '{file_path}' 不在项目目录内，已拒绝")
+        return str(resolved)
 
 
 @dataclass
@@ -152,6 +206,9 @@ class ConfigManager:
                     if hasattr(self.config, key):
                         setattr(self.config, key, value)
                         self.logger.info(f"从配置文件加载: {key} = {value if key != 'smtp_password' else '***'}")
+            
+            # 重新验证路径安全性（YAML加载的路径也需要检查）
+            self.config._resolve_safe_paths()
             
             # 敏感字段优先使用环境变量（安全性）
             env_overrides = {

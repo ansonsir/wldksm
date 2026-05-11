@@ -5,10 +5,11 @@ RustScan API 封装模块
 import subprocess
 import os
 import signal
-import ast
+import json
 import logging
 import re
 import shutil
+import resource
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
@@ -155,12 +156,15 @@ class RustScanAPI:
             self.logger.info(f"执行扫描命令: {' '.join(cmd)}")
 
             # 使用 Popen + start_new_session 创建独立进程组
+            # shell=False 防止命令注入，preexec_fn 限制子进程资源
             self._process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                shell=False,
                 start_new_session=True,  # 创建独立进程组，便于精确终止
+                preexec_fn=self._set_process_limits,  # 资源限制
             )
 
             try:
@@ -216,6 +220,21 @@ class RustScanAPI:
                     self._process.kill()
                 except Exception:
                     pass
+
+    @staticmethod
+    def _set_process_limits():
+        """限制子进程资源使用（防止资源耗尽）"""
+        try:
+            # CPU 时间限制: 最多 3600 秒 (1小时)
+            resource.setrlimit(resource.RLIMIT_CPU, (3600, 3600))
+        except (ValueError, resource.error):
+            pass  # 在某些系统上可能不支持
+        try:
+            # 内存限制: 最多 4GB
+            mem_limit = 4 * 1024 * 1024 * 1024
+            resource.setrlimit(resource.RLIMIT_AS, (mem_limit, mem_limit))
+        except (ValueError, resource.error):
+            pass
 
     def terminate(self):
         """外部终止扫描进程（由 ScanOrchestrator 调用）"""
@@ -279,13 +298,15 @@ class RustScanAPI:
                     self.logger.warning(f"无效的 IP 地址: {ip}")
                     continue
 
-                opening_ports = ast.literal_eval(ports_str)
-
-                if not isinstance(opening_ports, (list, tuple)):
+                # 安全解析端口列表：优先用 json.loads，回退到手动解析
+                opening_ports = self._safe_parse_ports(ports_str)
+                if opening_ports is None:
                     self.logger.warning(f"端口数据格式错误: {ports_str}")
                     continue
 
                 ports = [int(p) for p in opening_ports if isinstance(p, (int, str))]
+                # 验证端口号范围
+                ports = [p for p in ports if 1 <= int(p) <= 65535]
                 scan_result[ip] = sorted(ports)
 
             except (ValueError, SyntaxError) as e:
@@ -293,6 +314,48 @@ class RustScanAPI:
                 continue
 
         return {k: scan_result[k] for k in sorted(scan_result)}
+
+    @staticmethod
+    def _safe_parse_ports(ports_str: str) -> Optional[List]:
+        """
+        安全解析端口列表，避免代码执行风险
+        优先使用 json.loads，回退到逗号分隔手动解析
+        """
+        if not ports_str or not ports_str.strip():
+            return None
+        ports_str = ports_str.strip()
+        
+        # 尝试 JSON 解析（最安全）
+        if ports_str.startswith('[') and ports_str.endswith(']'):
+            try:
+                parsed = json.loads(ports_str)
+                if isinstance(parsed, list):
+                    # 验证所有元素都是数字
+                    result = []
+                    for item in parsed:
+                        try:
+                            port = int(item)
+                            if 1 <= port <= 65535:
+                                result.append(port)
+                        except (ValueError, TypeError):
+                            continue
+                    return result if result else None
+            except json.JSONDecodeError:
+                pass
+        
+        # 回退：逗号分隔手动解析
+        try:
+            result = []
+            for part in ports_str.strip('[]').split(','):
+                part = part.strip()
+                if not part:
+                    continue
+                port = int(part)
+                if 1 <= port <= 65535:
+                    result.append(port)
+            return result if result else None
+        except (ValueError, TypeError):
+            return None
 
     @staticmethod
     def _is_valid_ip(ip: str) -> bool:

@@ -9,6 +9,14 @@ from typing import List, Dict, Optional, Set, Tuple
 from dataclasses import dataclass
 from datetime import datetime
 
+# XXE防护：在导入docxtpl之前用defusedxml安全替换stdlib XML解析器
+try:
+    import defusedxml
+    defusedxml.defuse_stdlib()
+    DOCX_XML_SAFE = True
+except ImportError:
+    DOCX_XML_SAFE = False
+
 try:
     from docxtpl import DocxTemplate
     from docx import Document
@@ -109,6 +117,8 @@ class TemplateManager:
 
         if not DOCX_AVAILABLE:
             self.logger.warning("未安装 docxtpl 库，模板功能受限")
+        if not DOCX_XML_SAFE:
+            self.logger.warning("未安装 defusedxml 库，XML解析缺少XXE防护")
 
     def list_templates(self) -> List[Dict]:
         """列出所有可用模板"""

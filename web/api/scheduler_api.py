@@ -3,6 +3,7 @@
 """
 from flask import Blueprint, request, jsonify
 from core.database import ScheduledTask
+from web.middleware.auth_middleware import require_auth
 
 # 蓝图将在 app.py 中创建并传入 scheduler 实例
 scheduler_bp = Blueprint('scheduler', __name__)
@@ -18,6 +19,7 @@ def init_scheduler_api(scheduler_instance):
 
 
 @scheduler_bp.route('/api/scheduler/tasks', methods=['GET'])
+@require_auth
 def get_tasks():
     """获取所有定时任务"""
     try:
@@ -60,6 +62,7 @@ def get_tasks():
 
 
 @scheduler_bp.route('/api/scheduler/tasks', methods=['POST'])
+@require_auth
 def create_task():
     """创建定时任务"""
     try:
@@ -127,6 +130,7 @@ def create_task():
 
 
 @scheduler_bp.route('/api/scheduler/tasks/<int:task_id>', methods=['PUT'])
+@require_auth
 def update_task(task_id):
     """更新定时任务"""
     try:
@@ -179,6 +183,7 @@ def update_task(task_id):
 
 
 @scheduler_bp.route('/api/scheduler/tasks/<int:task_id>', methods=['DELETE'])
+@require_auth
 def delete_task(task_id):
     """删除定时任务"""
     try:
@@ -212,6 +217,7 @@ def delete_task(task_id):
 
 
 @scheduler_bp.route('/api/scheduler/tasks/<int:task_id>/toggle', methods=['POST'])
+@require_auth
 def toggle_task(task_id):
     """启用/禁用定时任务"""
     try:
@@ -246,6 +252,7 @@ def toggle_task(task_id):
 
 
 @scheduler_bp.route('/api/scheduler/tasks/<int:task_id>/run', methods=['POST'])
+@require_auth
 def run_now(task_id):
     """立即执行定时任务"""
     try:
@@ -280,6 +287,7 @@ def run_now(task_id):
 
 
 @scheduler_bp.route('/api/scheduler/tasks/<int:task_id>/stop', methods=['POST'])
+@require_auth
 def stop_task(task_id):
     """停止正在运行的定时任务"""
     try:

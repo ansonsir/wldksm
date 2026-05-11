@@ -31,7 +31,15 @@ def create_app():
     """应用工厂函数"""
     FRONTEND_DIST = PROJECT_ROOT / 'web' / 'frontend' / 'dist'
     app = Flask(__name__, static_folder=str(FRONTEND_DIST / 'assets'), template_folder='templates')
-    CORS(app)
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": ["http://localhost:5000", "http://127.0.0.1:5000"],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"],
+            "expose_headers": ["Content-Disposition"],
+            "max_age": 3600,
+        }
+    })
     # 持久化 Flask session secret key（避免重启后 session 失效导致 TOTP 登录中断）
     _secret_file = PROJECT_ROOT / 'web' / 'data' / '.flask_secret'
     if _secret_file.exists():
@@ -82,6 +90,8 @@ def _init_default_admin(db_manager, auth_service):
     admin = db_manager.get_user_by_username('admin')
     if not admin:
         import secrets
+        import logging
+        logger = logging.getLogger(__name__)
         password = ''.join(secrets.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*') for _ in range(12))
         password_hash = auth_service.hash_password(password)
         db_manager.create_user(
@@ -90,12 +100,23 @@ def _init_default_admin(db_manager, auth_service):
             email='admin@localhost',
             is_admin=True
         )
-        print("\n" + "="*70)
-        print("【首次启动】默认管理员账户已创建")
-        print(f"用户名: admin")
-        print(f"密码: {password}")
-        print("请立即登录并修改密码！")
-        print("="*70 + "\n")
+        # 安全：将初始凭据写入受保护文件（而非打印到控制台/日志）
+        credential_file = Path(__file__).parent.parent / 'data' / '.admin_initial_credentials'
+        credential_file.parent.mkdir(parents=True, exist_ok=True)
+        credential_file.write_text(
+            f"Username: admin\nPassword: {password}\n"
+            f"IMPORTANT: Login and change password immediately, then delete this file.\n"
+        )
+        if os.name == 'posix':
+            credential_file.chmod(0o600)
+        logger.warning(
+            "="*70 + "\n"
+            "【首次启动】默认管理员账户已创建\n"
+            "用户名: admin\n"
+            f"初始凭据文件: {credential_file}\n"
+            "请立即登录并修改密码，随后删除该凭据文件！\n"
+            "="*70
+        )
     else:
         print("管理员账户已存在")
 
@@ -153,6 +174,7 @@ if __name__ == '__main__':
         'script-src': "'self' 'unsafe-inline'",
         'style-src': "'self' 'unsafe-inline'",
         'img-src': "'self' data:",
+        'report-uri': '/api/csp-report',
     }, force_https=False)
 
     limiter.init_app(app)

@@ -32,6 +32,9 @@ from web.security_config import (
 
 # 临时存储验证码（生产环境应使用Redis）
 _captcha_store: Dict[str, Dict] = {}
+_MAX_CAPTCHA_COUNT = 100  # 最大验证码存储数量，防止DoS
+# IP级别的验证码请求频率追踪
+_captcha_request_tracker: Dict[str, list] = {}  # {ip: [timestamp, ...]}
 
 # 存储已使用的TOTP验证码（防止重放攻击）
 _used_totp_tokens: Dict[str, float] = {}  # {token: timestamp}
@@ -92,14 +95,37 @@ class AuthService:
 
     # ==================== 验证码管理 ====================
 
-    def generate_captcha(self) -> Tuple[str, str]:
+    def generate_captcha(self, client_ip: str = "unknown") -> Tuple[str, str]:
         """
         生成图形验证码
+        
+        Args:
+            client_ip: 客户端IP（用于频率限制）
         
         Returns:
             (captcha_id, captcha_image_base64)
         """
         from captcha.image import ImageCaptcha
+        
+        # IP级别频率限制：每分钟最多10次
+        now = time.time()
+        if client_ip != "unknown":
+            requests_times = _captcha_request_tracker.get(client_ip, [])
+            # 清理60秒前的记录
+            requests_times = [t for t in requests_times if now - t < 60]
+            if len(requests_times) >= 10:
+                self.logger.warning(f"验证码请求频率过高: {client_ip}")
+                # 返回错误标识
+                return "", ""
+            requests_times.append(now)
+            _captcha_request_tracker[client_ip] = requests_times
+        
+        # 限制验证码存储数量，防止内存DoS
+        if len(_captcha_store) >= _MAX_CAPTCHA_COUNT:
+            self._cleanup_captcha()
+            if len(_captcha_store) >= _MAX_CAPTCHA_COUNT:
+                self.logger.warning("验证码存储已达上限，拒绝生成新验证码")
+                return "", ""
         
         # 生成4位验证码（只使用容易识别的字符）
         # 去除容易混淆的字符：0/O, 1/I/l, 2/Z, 5/S, 8/B
@@ -293,7 +319,9 @@ class AuthService:
     # ==================== 登录流程 ====================
 
     def authenticate(self, username: str, password: str, 
-                    captcha_id: str, captcha_code: str) -> Dict:
+                    captcha_id: str, captcha_code: str,
+                    ip_address: str = "unknown",
+                    user_agent: str = "unknown") -> Dict:
         """
         用户登录（第一步：验证用户名密码+验证码）
         
@@ -302,6 +330,8 @@ class AuthService:
             password: 密码
             captcha_id: 验证码ID
             captcha_code: 验证码
+            ip_address: 客户端真实IP（由API层传入）
+            user_agent: 客户端User-Agent
             
         Returns:
             {
@@ -315,9 +345,6 @@ class AuthService:
                 'remaining_attempts': int  # 剩余尝试次数
             }
         """
-        ip_address = "unknown"  # 由API层传入
-        user_agent = "unknown"
-        
         # 1. 验证验证码
         if not self.verify_captcha(captcha_id, captcha_code):
             self.logger.warning(f"验证码验证失败: {username}")
@@ -521,6 +548,31 @@ class AuthService:
         }
 
     # ==================== 会话管理 ====================
+
+    def create_csrf_token(self) -> str:
+        """
+        创建CSRF保护Token（短期JWT）
+        用于防止跨站请求伪造攻击
+        """
+        now = datetime.utcnow()
+        expiration = now + timedelta(hours=8)  # CSRF token有效期8小时
+        payload = {
+            'type': 'csrf',
+            'iat': now,
+            'exp': expiration,
+            'jti': secrets.token_urlsafe(16)
+        }
+        return jwt.encode(payload, self.jwt_secret_key, algorithm=JWT_ALGORITHM)
+
+    def verify_csrf_token(self, token: str) -> bool:
+        """验证CSRF Token"""
+        try:
+            payload = jwt.decode(token, self.jwt_secret_key, algorithms=[JWT_ALGORITHM])
+            return payload.get('type') == 'csrf'
+        except jwt.ExpiredSignatureError:
+            return False
+        except jwt.InvalidTokenError:
+            return False
 
     def create_session(self, user_id: int) -> str:
         """

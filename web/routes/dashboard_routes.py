@@ -8,6 +8,7 @@ from flask import Blueprint, jsonify, send_file, current_app, request
 
 from apscheduler.schedulers.base import STATE_RUNNING
 from web.rate_limit import limiter
+from web.middleware.auth_middleware import require_auth
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -23,6 +24,7 @@ def index():
 
 
 @dashboard_bp.route('/api/stats', methods=['GET'])
+@require_auth
 def get_stats():
     """获取丰富的仪表盘统计信息"""
     try:
@@ -155,6 +157,33 @@ def get_stats():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
+@dashboard_bp.route('/api/csp-report', methods=['POST'])
+@limiter.limit("30 per minute")
+def csp_report():
+    """
+    CSP违规报告端点
+    接收浏览器发送的Content-Security-Policy违规报告，记录到日志用于安全监控
+    """
+    import logging
+    csp_logger = logging.getLogger("CSPReport")
+    try:
+        report = request.get_json(force=True, silent=True)
+        if report:
+            csp_report_data = report.get('csp-report', report)
+            csp_logger.warning(f"CSP违规: {csp_report_data}")
+            # 只记录关键字段避免日志膨胀
+            summary = {
+                'blocked-uri': csp_report_data.get('blocked-uri', ''),
+                'violated-directive': csp_report_data.get('violated-directive', ''),
+                'document-uri': csp_report_data.get('document-uri', ''),
+                'script-sample': csp_report_data.get('script-sample', '')[:100] if csp_report_data.get('script-sample') else ''
+            }
+            csp_logger.warning(f"CSP违规摘要: {summary}")
+    except Exception as e:
+        csp_logger.error(f"CSP报告处理失败: {e}")
+    return jsonify({'success': True}), 204  # 静默处理，不返回错误
+
+
 @dashboard_bp.route('/api/system/health', methods=['GET'])
 @limiter.exempt
 def health_check():
@@ -204,6 +233,7 @@ def health_check():
 # ==================== 资产变更追踪 ====================
 
 @dashboard_bp.route('/api/assets/compare', methods=['POST'])
+@require_auth
 def compare_assets():
     """
     对比两次扫描的资产变更
@@ -245,6 +275,7 @@ def compare_assets():
 
 
 @dashboard_bp.route('/api/assets/trend', methods=['GET'])
+@require_auth
 def get_asset_trend():
     """获取资产变化趋势数据"""
     try:
@@ -257,6 +288,7 @@ def get_asset_trend():
 
 
 @dashboard_bp.route('/api/assets/summary', methods=['GET'])
+@require_auth
 def get_asset_summary():
     """获取资产概览（用于Dashboard）"""
     try:

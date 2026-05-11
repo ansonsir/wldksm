@@ -1,6 +1,7 @@
 """
 邮件发送服务模块
 支持SMTP配置管理和报告邮件发送
+SMTP密码使用Fernet加密存储，防止明文泄露
 """
 import smtplib
 import logging
@@ -12,7 +13,47 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
+from cryptography.fernet import Fernet
+
 from core.database import DatabaseManager, EmailSettings
+
+# SMTP密码加密密钥文件路径
+_FERNET_KEY_FILE = Path(__file__).parent.parent / "data" / ".smtp_fernet_key"
+
+
+def _get_fernet() -> Fernet:
+    """获取或生成Fernet加密实例"""
+    if _FERNET_KEY_FILE.exists():
+        key = _FERNET_KEY_FILE.read_bytes()
+    else:
+        key = Fernet.generate_key()
+        _FERNET_KEY_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _FERNET_KEY_FILE.write_bytes(key)
+        import os
+        os.chmod(str(_FERNET_KEY_FILE), 0o600)
+    return Fernet(key)
+
+
+def _encrypt_password(password: str) -> str:
+    """加密SMTP密码"""
+    if not password:
+        return ""
+    try:
+        f = _get_fernet()
+        return f.encrypt(password.encode('utf-8')).decode('utf-8')
+    except Exception:
+        return password  # 加密失败时返回原密码（降级处理）
+
+
+def _decrypt_password(encrypted: str) -> str:
+    """解密SMTP密码"""
+    if not encrypted:
+        return ""
+    try:
+        f = _get_fernet()
+        return f.decrypt(encrypted.encode('utf-8')).decode('utf-8')
+    except Exception:
+        return encrypted  # 解密失败时返回原值（兼容旧数据）
 
 
 @dataclass
@@ -54,7 +95,7 @@ class ReportMailer:
                 smtp_server=settings.smtp_server,
                 smtp_port=settings.smtp_port,
                 smtp_user=settings.smtp_user,
-                smtp_password=settings.smtp_password,
+                smtp_password=_decrypt_password(settings.smtp_password),
                 smtp_ssl=settings.smtp_ssl,
                 skip_login=settings.skip_login,
                 default_sender=settings.default_sender,
@@ -62,7 +103,7 @@ class ReportMailer:
             )
 
     def save_to_db(self, config: MailConfig) -> bool:
-        """保存邮件配置到数据库"""
+        """保存邮件配置到数据库（密码加密存储）"""
         if not self.db:
             self.logger.warning("没有数据库连接，无法保存邮件配置")
             return False
@@ -71,7 +112,7 @@ class ReportMailer:
             smtp_server=config.smtp_server,
             smtp_port=config.smtp_port,
             smtp_user=config.smtp_user,
-            smtp_password=config.smtp_password,
+            smtp_password=_encrypt_password(config.smtp_password),
             smtp_ssl=config.smtp_ssl,
             skip_login=config.skip_login,
             default_sender=config.default_sender,

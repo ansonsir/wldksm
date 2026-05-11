@@ -1,12 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/api'
-import axios from 'axios'
+import api, { secureGetItem, secureSetItem, fetchCsrfToken, clearCsrfToken } from '@/api'
 import { ElMessage } from 'element-plus'
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('auth_token') || '')
+  const token = ref(secureGetItem('auth_token') || '')
   const userInfo = ref(JSON.parse(localStorage.getItem('user_info') || 'null'))
 
   const isLoggedIn = computed(() => !!token.value)
@@ -16,8 +15,10 @@ export const useAuthStore = defineStore('auth', () => {
   function setAuth(newToken, user) {
     token.value = newToken
     userInfo.value = user
-    localStorage.setItem('auth_token', newToken)
+    secureSetItem('auth_token', newToken)
     localStorage.setItem('user_info', JSON.stringify(user))
+    // 登录后异步获取 CSRF Token
+    fetchCsrfToken().catch(() => {})
   }
 
   function clearAuth() {
@@ -26,11 +27,13 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('auth_token')
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('user_info')
+    localStorage.removeItem('_fp')
+    clearCsrfToken()
   }
 
   async function logout(router) {
     try {
-      await axios.post('/api/auth/logout')
+      await api.post('/api/auth/logout')
     } catch (e) {}
     clearAuth()
     ElMessage.success('已退出登录')

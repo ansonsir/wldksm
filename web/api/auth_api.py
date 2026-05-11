@@ -6,8 +6,9 @@ import logging
 from flask import Blueprint, request, jsonify, current_app
 
 from web.utils import success_response, error_response
-from web.middleware.auth_middleware import require_auth, require_admin
+from web.middleware.auth_middleware import require_auth, require_admin, require_csrf
 from web.security_config import validate_username, validate_password_strength
+from web.rate_limit import limiter
 
 logger = logging.getLogger("AuthAPI")
 
@@ -22,10 +23,19 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 
 @auth_bp.route('/captcha', methods=['POST'])
+@limiter.limit("10 per minute")
 def get_captcha():
     """获取图形验证码"""
     try:
-        captcha_id, captcha_image = _auth_service().generate_captcha()
+        # 获取客户端真实IP
+        client_ip = (request.headers.get('X-Forwarded-For', '') or '').split(',')[0].strip()
+        if not client_ip:
+            client_ip = request.remote_addr or "unknown"
+        
+        captcha_id, captcha_image = _auth_service().generate_captcha(client_ip)
+        
+        if not captcha_id:
+            return error_response("验证码请求过于频繁，请稍后再试", 429)
         
         return success_response({
             'captcha_id': captcha_id,
@@ -34,6 +44,22 @@ def get_captcha():
     except Exception as e:
         logger.error(f"生成验证码失败: {e}")
         return error_response("生成验证码失败", 500)
+
+
+@auth_bp.route('/csrf-token', methods=['GET'])
+@require_auth
+def get_csrf_token():
+    """
+    获取CSRF保护Token
+    前端在登录后调用此接口获取CSRF Token，
+    后续所有状态变更请求（POST/PUT/DELETE）需在X-CSRF-Token头中携带
+    """
+    try:
+        csrf_token = _auth_service().create_csrf_token()
+        return success_response({'csrf_token': csrf_token})
+    except Exception as e:
+        logger.error(f"生成CSRF Token失败: {e}")
+        return error_response("生成CSRF Token失败", 500)
 
 
 @auth_bp.route('/login', methods=['POST'])
@@ -68,12 +94,15 @@ def login():
         if not captcha_id or not captcha_code:
             return error_response("请输入验证码", 400)
         
-        # 获取IP和User-Agent
-        ip_address = request.remote_addr or "unknown"
+        # 获取IP和User-Agent（正确获取客户端真实IP）
+        ip_address = (request.headers.get('X-Forwarded-For', '') or '').split(',')[0].strip()
+        if not ip_address:
+            ip_address = request.remote_addr or "unknown"
         user_agent = request.headers.get('User-Agent', 'unknown')
         
-        # 执行认证
-        result = auth_service.authenticate(username, password, captcha_id, captcha_code)
+        # 执行认证（传入真实 IP 用于安全审计和暴力破解防护）
+        result = auth_service.authenticate(username, password, captcha_id, captcha_code,
+                                           ip_address=ip_address, user_agent=user_agent)
         
         if result['success']:
             if result.get('need_totp'):
@@ -167,6 +196,7 @@ def login_totp():
 
 @auth_bp.route('/logout', methods=['POST'])
 @require_auth
+@require_csrf
 def logout():
     """用户登出"""
     try:
@@ -266,6 +296,7 @@ def update_profile():
 
 @auth_bp.route('/change-password', methods=['POST'])
 @require_auth
+@require_csrf
 def change_password():
     """修改密码"""
     try:
@@ -495,6 +526,7 @@ def get_users():
 
 @auth_bp.route('/users', methods=['POST'])
 @require_admin
+@require_csrf
 def create_user():
     """创建用户（管理员）"""
     try:
@@ -547,6 +579,7 @@ def create_user():
 
 @auth_bp.route('/users/<int:user_id>', methods=['PUT'])
 @require_admin
+@require_csrf
 def update_user(user_id):
     """更新用户信息（管理员）"""
     try:
@@ -595,6 +628,7 @@ def update_user(user_id):
 
 @auth_bp.route('/users/<int:user_id>/reset-password', methods=['POST'])
 @require_admin
+@require_csrf
 def reset_user_password(user_id):
     """重置用户密码（管理员）"""
     try:
@@ -633,6 +667,7 @@ def reset_user_password(user_id):
 
 @auth_bp.route('/users/<int:user_id>', methods=['DELETE'])
 @require_admin
+@require_csrf
 def delete_user(user_id):
     """删除用户（管理员）"""
     try:

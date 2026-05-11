@@ -200,6 +200,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Lock, User } from '@element-plus/icons-vue'
 import axios from 'axios'
+import { secureSetItem, fetchCsrfToken } from '@/api'
 import TOTPSetup from '@/components/TOTPSetup.vue'
 
 const router = useRouter()
@@ -306,9 +307,12 @@ const handleLogin = async () => {
           ElMessage.info('请输入动态验证码')
         } else if (data.need_totp_setup) {
           // 需要设置TOTP（未启用TOTP的用户，包括重置后需要重新设置的用户）
-          localStorage.setItem('auth_token', data.token)
-          localStorage.setItem('refresh_token', data.refresh_token)
+          secureSetItem('auth_token', data.token)
+          secureSetItem('refresh_token', data.refresh_token)
           localStorage.setItem('user_info', JSON.stringify(data.user_info))
+          
+          // 获取CSRF Token
+          fetchCsrfToken().catch(() => {})
           
           // 保存当前用户ID和token
           currentUserId.value = data.user_info.id
@@ -325,9 +329,12 @@ const handleLogin = async () => {
           }
         } else {
           // 已启用TOTP且验证通过，或者系统不强制TOTP
-          localStorage.setItem('auth_token', data.token)
-          localStorage.setItem('refresh_token', data.refresh_token)
+          secureSetItem('auth_token', data.token)
+          secureSetItem('refresh_token', data.refresh_token)
           localStorage.setItem('user_info', JSON.stringify(data.user_info))
+          
+          // 获取CSRF Token
+          fetchCsrfToken().catch(() => {})
           
           ElMessage.success('登录成功')
           
@@ -374,9 +381,12 @@ const handleTotpLogin = async () => {
       if (response.data.success) {
         const data = response.data.data
         
-        localStorage.setItem('auth_token', data.token)
-        localStorage.setItem('refresh_token', data.refresh_token)
+        secureSetItem('auth_token', data.token)
+        secureSetItem('refresh_token', data.refresh_token)
         localStorage.setItem('user_info', JSON.stringify(data.user_info))
+        
+        // 获取CSRF Token
+        fetchCsrfToken().catch(() => {})
         
         // 清除临时存储
         sessionStorage.removeItem('totp_session_token')

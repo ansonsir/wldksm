@@ -8,11 +8,72 @@ import time
 import hmac
 import hashlib
 import base64
-from urllib.parse import quote_plus
+import ipaddress
+from urllib.parse import quote_plus, urlparse
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 
 import requests
+
+
+# 内网地址段（禁止 Webhook 指向这些地址）
+_PRIVATE_NETWORKS = [
+    ipaddress.ip_network('10.0.0.0/8'),
+    ipaddress.ip_network('172.16.0.0/12'),
+    ipaddress.ip_network('192.168.0.0/16'),
+    ipaddress.ip_network('127.0.0.0/8'),
+    ipaddress.ip_network('169.254.0.0/16'),
+    ipaddress.ip_network('0.0.0.0/8'),
+    ipaddress.ip_network('::1/128'),
+    ipaddress.ip_network('fc00::/7'),
+    ipaddress.ip_network('fe80::/10'),
+]
+
+# 各平台允许的 Webhook 域名白名单
+_ALLOWED_WEBHOOK_DOMAINS = {
+    'dingtalk': {'oapi.dingtalk.com'},
+    'wecom': {'qyapi.weixin.qq.com'},
+    'feishu': {'open.feishu.cn'},
+}
+
+
+def _validate_webhook_url(platform: str, url: str) -> Tuple[bool, str]:
+    """
+    验证 Webhook URL 安全性（防 SSRF）
+    
+    Returns:
+        (is_valid, error_message)
+    """
+    try:
+        parsed = urlparse(url)
+        
+        # 1. 必须使用 HTTPS
+        if parsed.scheme not in ('https',):
+            return False, f"Webhook URL 必须使用 HTTPS，当前: {parsed.scheme}"
+        
+        hostname = parsed.hostname
+        if not hostname:
+            return False, "无效的 URL 主机名"
+        
+        # 2. 检查是否为内网 IP
+        try:
+            ip = ipaddress.ip_address(hostname)
+            for network in _PRIVATE_NETWORKS:
+                if ip in network:
+                    return False, f"不允许指向内网地址: {hostname}"
+            return True, ""  # 公网 IP 允许
+        except ValueError:
+            pass  # 不是 IP 地址，继续域名检查
+        
+        # 3. 域名白名单校验
+        if platform in _ALLOWED_WEBHOOK_DOMAINS:
+            allowed = _ALLOWED_WEBHOOK_DOMAINS[platform]
+            if not any(hostname == d or hostname.endswith('.' + d) for d in allowed):
+                return False, f"域名不在 {platform} 白名单中: {hostname}"
+        
+        return True, ""
+    except Exception as e:
+        return False, f"URL 验证失败: {e}"
 
 
 @dataclass
@@ -94,6 +155,11 @@ class WebhookNotifier:
 
     def _send_dingtalk(self, config: WebhookConfig, scan_info: Dict) -> Tuple[bool, str]:
         """发送钉钉机器人消息"""
+        # SSRF 防护：验证 URL
+        valid, err = _validate_webhook_url('dingtalk', config.webhook_url)
+        if not valid:
+            return False, f"Webhook URL 不安全: {err}"
+        
         url = config.webhook_url
         if config.secret:
             timestamp = str(round(time.time() * 1000))
@@ -122,6 +188,11 @@ class WebhookNotifier:
 
     def _send_wecom(self, config: WebhookConfig, scan_info: Dict) -> Tuple[bool, str]:
         """发送企业微信机器人消息"""
+        # SSRF 防护：验证 URL
+        valid, err = _validate_webhook_url('wecom', config.webhook_url)
+        if not valid:
+            return False, f"Webhook URL 不安全: {err}"
+        
         text = self._build_wecom_text(scan_info)
         
         payload = {
@@ -142,6 +213,11 @@ class WebhookNotifier:
 
     def _send_feishu(self, config: WebhookConfig, scan_info: Dict) -> Tuple[bool, str]:
         """发送飞书机器人消息"""
+        # SSRF 防护：验证 URL
+        valid, err = _validate_webhook_url('feishu', config.webhook_url)
+        if not valid:
+            return False, f"Webhook URL 不安全: {err}"
+        
         timestamp = str(int(time.time()))
         sign = ""
         if config.secret:

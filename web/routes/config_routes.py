@@ -167,7 +167,8 @@ def get_mail_config():
                     'smtp_server': settings.smtp_server,
                     'smtp_port': settings.smtp_port,
                     'smtp_user': settings.smtp_user,
-                    'smtp_password': settings.smtp_password,
+                    # 安全：不返回明文密码，前端显示为占位符
+                    'smtp_password': '********' if settings.smtp_password else '',
                     'smtp_ssl': bool(settings.smtp_ssl),
                     'skip_login': bool(settings.skip_login),
                     'default_sender': settings.default_sender,
@@ -186,11 +187,19 @@ def save_mail_config():
     try:
         _, _, mailer = _get_services()
         data = request.get_json()
+        
+        # 安全处理密码字段：如果前端传回占位符，保留原密码
+        smtp_password = data.get('smtp_password', '')
+        if smtp_password == '********' or not smtp_password:
+            # 从数据库获取当前密码
+            current_settings = mailer.db.get_email_settings() if mailer.db else None
+            smtp_password = current_settings.smtp_password if current_settings else ''
+        
         config = MailConfig(
             smtp_server=data.get('smtp_server', ''),
             smtp_port=data.get('smtp_port', 587),
             smtp_user=data.get('smtp_user', ''),
-            smtp_password=data.get('smtp_password', ''),
+            smtp_password=smtp_password,
             smtp_ssl=data.get('smtp_ssl', True),
             skip_login=data.get('skip_login', False),
             default_sender=data.get('default_sender', ''),

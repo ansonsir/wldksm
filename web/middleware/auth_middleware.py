@@ -100,3 +100,42 @@ def get_current_user():
     
     db_manager = current_app.config['db_manager']
     return db_manager.get_user_by_id(request.current_user_id)
+
+
+def require_csrf(f):
+    """
+    CSRF保护装饰器 - 用于状态变更请求（POST/PUT/DELETE）
+    
+    需要客户端在 X-CSRF-Token 头中提供有效的CSRF Token。
+    与 @require_auth 配合使用（先认证再验证CSRF）。
+    
+    使用方法:
+        @app.route('/api/protected', methods=['POST'])
+        @require_auth
+        @require_csrf
+        def protected_route():
+            ...
+    """
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        # GET/HEAD/OPTIONS 请求不需要CSRF保护
+        if request.method in ('GET', 'HEAD', 'OPTIONS'):
+            return f(*args, **kwargs)
+        
+        csrf_token = request.headers.get('X-CSRF-Token', '')
+        if not csrf_token:
+            return jsonify({
+                'success': False,
+                'error': '缺少CSRF保护Token'
+            }), 403
+        
+        auth_service = current_app.config['auth_service']
+        if not auth_service.verify_csrf_token(csrf_token):
+            return jsonify({
+                'success': False,
+                'error': 'CSRF Token无效或已过期'
+            }), 403
+        
+        return f(*args, **kwargs)
+    
+    return decorated_function
