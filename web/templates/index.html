@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网络端口扫描工具 v3.0</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif; background: #f0f2f5; }
+        .app-container { min-height: 100vh; }
+        .el-header { background: #001529; color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+        .logo { font-size: 20px; font-weight: bold; }
+        .el-aside { background: #001529; }
+        .el-menu { border-right: none; }
+        .main-content { padding: 20px; }
+        .scan-progress { margin: 20px 0; }
+        .log-container { background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 13px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .stat-card { text-align: center; }
+        .stat-value { font-size: 32px; font-weight: bold; color: #409eff; }
+        .stat-label { color: #909399; margin-top: 8px; }
+        .report-actions { display: flex; gap: 8px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <el-container class="app-container">
+            <el-header height="60px">
+                <div class="logo">网络端口扫描工具 v3.0</div>
+                <el-tag type="success" v-if="systemStatus === 'online'">系统正常</el-tag>
+                <el-tag type="danger" v-else>系统异常</el-tag>
+            </el-header>
+            <el-container>
+                <el-aside width="220px">
+                    <el-menu
+                        :default-active="activeMenu"
+                        background-color="#001529"
+                        text-color="#fff"
+                        active-text-color="#409eff"
+                        @select="handleMenuSelect"
+                    >
+                        <el-menu-item index="dashboard">
+                            <el-icon><home-filled /></el-icon>
+                            <span>概览</span>
+                        </el-menu-item>
+                        <el-menu-item index="scan">
+                            <el-icon><aim /></el-icon>
+                            <span>扫描任务</span>
+                        </el-menu-item>
+                        <el-menu-item index="history">
+                            <el-icon><clock /></el-icon>
+                            <span>扫描历史</span>
+                        </el-menu-item>
+                        <el-menu-item index="reports">
+                            <el-icon><document /></el-icon>
+                            <span>报告管理</span>
+                        </el-menu-item>
+                        <el-menu-item index="templates">
+                            <el-icon><files /></el-icon>
+                            <span>模板管理</span>
+                        </el-menu-item>
+                        <el-menu-item index="settings">
+                            <el-icon><setting /></el-icon>
+                            <span>系统配置</span>
+                        </el-menu-item>
+                    </el-menu>
+                </el-aside>
+                <el-main class="main-content">
+                    <!-- 概览页 -->
+                    <div v-if="currentPage === 'dashboard'">
+                        <h2>系统概览</h2>
+                        <div class="card-grid">
+                            <el-card class="stat-card">
+                                <div class="stat-value" style="color: #409eff;">{{ stats.total_scans || 0 }}</div>
+                                <div class="stat-label">总扫描次数</div>
+                            </el-card>
+                            <el-card class="stat-card">
+                                <div class="stat-value" style="color: #67c23a;">{{ stats.completed_count || 0 }}</div>
+                                <div class="stat-label">成功完成</div>
+                            </el-card>
+                            <el-card class="stat-card">
+                                <div class="stat-value" style="color: #e6a23c;">{{ stats.total_hosts || 0 }}</div>
+                                <div class="stat-label">发现主机总数</div>
+                            </el-card>
+                            <el-card class="stat-card">
+                                <div class="stat-value" style="color: #f56c6c;">{{ stats.failed_count || 0 }}</div>
+                                <div class="stat-label">失败/取消</div>
+                            </el-card>
+                        </div>
+
+                        <el-row :gutter="20" style="margin-bottom: 20px;">
+                            <el-col :span="12">
+                                <el-card>
+                                    <template #header>
+                                        <span>扫描成功率</span>
+                                    </template>
+                                    <div style="text-align: center; padding: 20px 0;">
+                                        <el-progress type="dashboard" :percentage="stats.success_rate || 0" :color="['#f56c6c', '#e6a23c', '#67c23a']" />
+                                        <div style="margin-top: 10px; color: #909399;">
+                                            成功率: {{ stats.success_rate || 0 }}%
+                                        </div>
+                                    </div>
+                                </el-card>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-card>
+                                    <template #header>
+                                        <span>任务状态分布</span>
+                                    </template>
+                                    <div style="padding: 10px 20px;">
+                                        <div v-for="(count, status) in stats.status_counts" :key="status" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
+                                            <span>
+                                                <el-tag :type="statusType(status)" size="small">{{ statusText(status) }}</el-tag>
+                                            </span>
+                                            <span style="font-weight: bold;">{{ count }}</span>
+                                        </div>
+                                        <div v-if="!stats.status_counts || Object.keys(stats.status_counts).length === 0" style="text-align: center; color: #909399; padding: 20px;">
+                                            暂无数据
+                                        </div>
+                                    </div>
+                                </el-card>
+                            </el-col>
+                        </el-row>
+
+                        <el-card>
+                            <template #header>
+                                <span>最近扫描记录</span>
+                            </template>
+                            <el-table :data="recentRecords" style="width: 100%" empty-text="暂无扫描记录">
+                                <el-table-column prop="id" label="ID" width="60" />
+                                <el-table-column prop="area" label="区域" width="120" />
+                                <el-table-column prop="status" label="状态" width="100">
+                                    <template #default="scope">
+                                        <el-tag :type="statusType(scope.row.status)">{{ statusText(scope.row.status) }}</el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="total_hosts" label="主机数" width="100" />
+                                <el-table-column prop="open_ports" label="开放端口" width="100" />
+                                <el-table-column prop="duration" label="用时" width="120">
+                                    <template #default="scope">{{ formatTime(scope.row.duration) }}</template>
+                                </el-table-column>
+                                <el-table-column prop="start_time" label="开始时间" />
+                            </el-table>
+                        </el-card>
+                    </div>
+
+                    <!-- 扫描任务页 -->
+                    <div v-if="currentPage === 'scan'">
+                        <h2>扫描任务</h2>
+                        <el-card>
+                            <el-form :model="scanForm" label-width="120px">
+                                <el-form-item label="IP范围">
+                                    <el-input
+                                        v-model="scanForm.ip_ranges"
+                                        type="textarea"
+                                        :rows="6"
+                                        placeholder="每行一个CIDR格式网段，如：&#10;10.0.0.0/24&#10;192.168.1.0/24&#10;未填写将自动加载系统配置的默认IP范围"
+                                    />
+                                    <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+                                        提示：留空将自动读取系统配置中的默认IP范围文件
+                                    </div>
+                                </el-form-item>
+                                <el-form-item label="端口">
+                                    <el-input
+                                        v-model="scanForm.ports"
+                                        placeholder="端口列表，如：22,80,443,3389 或留空从系统配置加载"
+                                    />
+                                    <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+                                        提示：留空将自动读取系统配置中的默认端口文件
+                                    </div>
+                                </el-form-item>
+                                <el-form-item label="排除IP">
+                                    <el-input
+                                        v-model="scanForm.exclude_ips"
+                                        placeholder="排除的IP地址，多个用逗号分隔 或留空从系统配置加载"
+                                    />
+                                    <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+                                        提示：留空将自动读取系统配置中的默认排除IP文件
+                                    </div>
+                                </el-form-item>
+                                <el-form-item label="并发线程">
+                                    <el-slider v-model="scanForm.max_workers" :min="1" :max="64" show-input />
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" @click="startScan" :loading="scanning" :disabled="scanning">
+                                        开始扫描
+                                    </el-button>
+                                    <el-button @click="stopScan" :disabled="!scanning || !currentTaskId">停止扫描</el-button>
+                                </el-form-item>
+                            </el-form>
+
+                            <div v-if="scanning || scanCompleted" class="scan-progress">
+                                <el-progress :percentage="scanProgress" :status="scanProgressStatus" />
+                                <p style="font-size: 14px; color: #606266; line-height: 1.6;">{{ scanMessage }}</p>
+                            </div>
+
+                            <div v-if="scanLogs.length > 0">
+                                <h4>扫描日志</h4>
+                                <div class="log-container">{{ scanLogs.join('\n') }}</div>
+                            </div>
+                        </el-card>
+                    </div>
+
+                    <!-- 扫描历史页 -->
+                    <div v-if="currentPage === 'history'">
+                        <h2>扫描历史</h2>
+                        <el-card>
+                            <el-table
+                                :data="historyRecords"
+                                style="width: 100%"
+                                empty-text="暂无扫描记录"
+                                stripe
+                                :default-sort="{ prop: 'start_time', order: 'descending' }"
+                            >
+                                <el-table-column type="index" label="序号" width="60" align="center" />
+                                <el-table-column prop="status" label="状态" width="90" align="center">
+                                    <template #default="scope">
+                                        <el-tag :type="statusType(scope.row.status)" size="small">{{ statusText(scope.row.status) }}</el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="扫描结果" width="160" align="center">
+                                    <template #default="scope">
+                                        <div style="font-size: 13px;">
+                                            <span style="color: #409eff; font-weight: bold;">{{ scope.row.total_hosts || 0 }}</span> 台主机
+                                            <el-divider direction="vertical" />
+                                            <span style="color: #e6a23c; font-weight: bold;">{{ scope.row.open_ports || 0 }}</span> 端口
+                                        </div>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="duration" label="用时" width="100" align="center">
+                                    <template #default="scope">{{ formatTime(scope.row.duration) }}</template>
+                                </el-table-column>
+                                <el-table-column prop="start_time" label="开始时间" width="160" />
+                                <el-table-column prop="end_time" label="结束时间" width="160" />
+                                <el-table-column label="操作" width="210" align="center" fixed="right">
+                                    <template #default="scope">
+                                        <el-button size="small" @click="viewHistoryDetail(scope.row)">详情</el-button>
+                                        <el-button size="small" type="primary" v-if="scope.row.report_file" @click="downloadReport(scope.row.report_file)">下载报告</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </el-card>
+
+                        <el-dialog v-model="historyDetailVisible" title="扫描详情" width="780px">
+                            <div v-if="historyDetail" style="padding: 0 10px;">
+                                <!-- 基本信息 -->
+                                <el-descriptions :column="2" border size="small">
+                                    <el-descriptions-item label="状态">
+                                        <el-tag :type="statusType(historyDetail.status)" size="small">{{ statusText(historyDetail.status) }}</el-tag>
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="用时">{{ formatTime(historyDetail.duration) }}</el-descriptions-item>
+                                    <el-descriptions-item label="开始时间">{{ historyDetail.start_time || '-' }}</el-descriptions-item>
+                                    <el-descriptions-item label="结束时间">{{ historyDetail.end_time || '-' }}</el-descriptions-item>
+                                </el-descriptions>
+
+                                <!-- 扫描结果 -->
+                                <h4 style="margin: 16px 0 8px;">扫描结果</h4>
+                                <el-descriptions :column="2" border size="small">
+                                    <el-descriptions-item label="发现主机">
+                                        <span style="font-weight: bold; color: #409eff;">{{ historyDetail.total_hosts || 0 }}</span> 台
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="开放端口">
+                                        <span style="font-weight: bold; color: #e6a23c;">{{ historyDetail.open_ports_count || 0 }}</span> 个
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="IP范围" :span="2">
+                                        <div style="max-height: 80px; overflow-y: auto; white-space: pre-wrap; font-size: 12px;">{{ historyDetail.ip_ranges || '-' }}</div>
+                                    </el-descriptions-item>
+                                </el-descriptions>
+
+                                <!-- 报告文件 -->
+                                <h4 style="margin: 16px 0 8px;" v-if="historyDetail.report_file">报告文件</h4>
+                                <el-descriptions :column="1" border size="small" v-if="historyDetail.report_file">
+                                    <el-descriptions-item label="报告路径">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <span style="font-size: 12px; flex: 1; word-break: break-all;">{{ historyDetail.report_file }}</span>
+                                            <el-button size="small" type="primary" @click="downloadReport(historyDetail.report_file)">下载</el-button>
+                                        </div>
+                                    </el-descriptions-item>
+                                </el-descriptions>
+
+                                <!-- 错误信息 -->
+                                <div v-if="historyDetail.error_message" style="margin-top: 12px;">
+                                    <el-alert :title="historyDetail.error_message" type="error" :closable="false" show-icon />
+                                </div>
+
+                                <!-- 端口详情表 -->
+                                <h4 style="margin: 16px 0 8px;">端口开放详情</h4>
+                                <el-table :data="historyDetail?.details || []" style="width:100%" max-height="350" size="small" empty-text="暂无详细结果" stripe>
+                                    <el-table-column prop="ip" label="IP地址" />
+                                    <el-table-column prop="port" label="端口" width="100" />
+                                    <el-table-column prop="service" label="服务" />
+                                </el-table>
+                            </div>
+                        </el-dialog>
+                    </div>
+
+                    <!-- 报告管理页 -->
+                    <div v-if="currentPage === 'reports'">
+                        <h2>报告管理</h2>
+                        <el-card>
+                            <el-table :data="reportRecords" style="width: 100%" empty-text="暂无报告">
+                                <el-table-column prop="name" label="文件名" min-width="200" show-overflow-tooltip />
+                                <el-table-column prop="area" label="区域" width="120">
+                                    <template #default="scope">
+                                        {{ scope.row.area || '默认区域' }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="status" label="状态" width="100">
+                                    <template #default="scope">
+                                        <el-tag :type="statusType(scope.row.status)">{{ statusText(scope.row.status) }}</el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="size" label="大小" width="100">
+                                    <template #default="scope">
+                                        {{ scope.row.size ? (scope.row.size / 1024).toFixed(1) + ' KB' : '-' }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="created" label="生成时间" width="170" />
+                                <el-table-column label="操作" width="280">
+                                    <template #default="scope">
+                                        <div class="report-actions">
+                                            <el-button size="small" type="primary" @click="downloadReport(scope.row.path)">下载</el-button>
+                                            <el-button size="small" type="success" @click="openSendMailDialog(scope.row)">发送邮件</el-button>
+                                        </div>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </el-card>
+
+                        <el-dialog v-model="sendMailVisible" title="发送报告邮件" width="500px">
+                            <el-form :model="mailForm" label-width="100px">
+                                <el-form-item label="报告文件">
+                                    <span>{{ selectedReport?.name }}</span>
+                                </el-form-item>
+                                <el-form-item label="收件人">
+                                    <el-input
+                                        v-model="mailForm.recipients"
+                                        placeholder="多个邮箱用逗号分隔"
+                                    />
+                                </el-form-item>
+                                <el-form-item label="邮件主题">
+                                    <el-input v-model="mailForm.subject" placeholder="默认：网络端口扫描报告" />
+                                </el-form-item>
+                                <el-form-item label="邮件正文">
+                                    <el-input
+                                        v-model="mailForm.body"
+                                        type="textarea"
+                                        :rows="3"
+                                        placeholder="默认正文"
+                                    />
+                                </el-form-item>
+                            </el-form>
+                            <template #footer>
+                                <el-button @click="sendMailVisible = false">取消</el-button>
+                                <el-button type="primary" @click="sendReportMail" :loading="sendingMail">发送</el-button>
+                            </template>
+                        </el-dialog>
+                    </div>
+
+                    <!-- 模板管理页 -->
+                    <div v-if="currentPage === 'templates'">
+                        <h2>模板管理</h2>
+                        <el-card>
+                            <el-row :gutter="20">
+                                <el-col :span="8">
+                                    <el-upload
+                                        drag
+                                        action="/api/templates/upload"
+                                        :on-success="handleUploadSuccess"
+                                        :on-error="handleUploadError"
+                                        accept=".docx"
+                                    >
+                                        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                                        <div class="el-upload__text">拖拽文件到此处或 <em>点击上传</em></div>
+                                        <template #tip>
+                                            <div class="el-upload__tip">只支持 .docx 格式的 Word 模板文件</div>
+                                        </template>
+                                    </el-upload>
+                                </el-col>
+                                <el-col :span="16">
+                                    <div style="margin-bottom: 10px; font-weight: bold; color: #606266;">已上传模板列表</div>
+                                    <el-table :data="templates" style="width: 100%" empty-text="暂无模板" size="small" max-height="280">
+                                        <el-table-column prop="name" label="模板名称" min-width="140" show-overflow-tooltip />
+                                        <el-table-column prop="source" label="来源" width="90" align="center">
+                                            <template #default="scope">
+                                                <el-tag :type="scope.row.source === 'database' ? 'success' : 'info'" size="small">
+                                                    {{ scope.row.source === 'database' ? '数据库' : '文件系统' }}
+                                                </el-tag>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column prop="description" label="描述" min-width="160" show-overflow-tooltip>
+                                            <template #default="scope">
+                                                {{ scope.row.description || '-' }}
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column prop="path" label="路径" min-width="200" show-overflow-tooltip>
+                                            <template #default="scope">
+                                                <el-tooltip :content="scope.row.path" placement="top">
+                                                    <span style="color: #409eff; cursor: pointer;">{{ scope.row.path }}</span>
+                                                </el-tooltip>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+                                </el-col>
+                            </el-row>
+                        </el-card>
+                    </div>
+
+                    <!-- 系统配置页 -->
+                    <div v-if="currentPage === 'settings'">
+                        <h2>系统配置</h2>
+
+                        <el-card title="扫描配置" style="margin-bottom: 20px">
+                            <el-form :model="configForm" label-width="150px">
+                                <el-form-item label="默认IP范围文件">
+                                    <el-input v-model="configForm.ip_range_file" />
+                                </el-form-item>
+                                <el-form-item label="默认端口文件">
+                                    <el-input v-model="configForm.ports_file" />
+                                </el-form-item>
+                                <el-form-item label="排除IP文件">
+                                    <el-input v-model="configForm.exclude_ips_file" />
+                                </el-form-item>
+                                <el-form-item label="最大线程数">
+                                    <el-slider v-model="configForm.max_workers" :min="1" :max="64" show-input />
+                                </el-form-item>
+                                <el-form-item label="Ulimit">
+                                    <el-input-number v-model="configForm.ulimit" :min="1000" :max="65535" />
+                                </el-form-item>
+                                <el-form-item label="扫描超时(秒)">
+                                    <el-input-number v-model="configForm.timeout" :min="30" :max="3600" />
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" @click="saveConfig">保存扫描配置</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </el-card>
+
+                        <el-card title="邮件配置">
+                            <el-form :model="mailConfigForm" label-width="150px">
+                                <el-form-item label="SMTP服务器">
+                                    <el-input v-model="mailConfigForm.smtp_server" placeholder="如: smtp.example.com" />
+                                </el-form-item>
+                                <el-form-item label="SMTP端口">
+                                    <el-input-number v-model="mailConfigForm.smtp_port" :min="1" :max="65535" />
+                                </el-form-item>
+                                <el-form-item label="用户名">
+                                    <el-input v-model="mailConfigForm.smtp_user" />
+                                </el-form-item>
+                                <el-form-item label="密码">
+                                    <el-input v-model="mailConfigForm.smtp_password" type="password" show-password />
+                                </el-form-item>
+                                <el-form-item label="使用SSL">
+                                    <el-switch v-model="mailConfigForm.smtp_ssl" />
+                                </el-form-item>
+                                <el-form-item label="默认发件人">
+                                    <el-input v-model="mailConfigForm.default_sender" placeholder="如: scanner@example.com" />
+                                </el-form-item>
+                                <el-form-item label="默认收件人">
+                                    <el-input
+                                        v-model="mailConfigForm.default_recipients"
+                                        placeholder="多个邮箱用逗号分隔"
+                                    />
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" @click="saveMailConfig">保存邮件配置</el-button>
+                                    <el-button @click="testMailConfig">测试连接</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </el-card>
+                    </div>
+                </el-main>
+            </el-container>
+        </el-container>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
