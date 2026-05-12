@@ -47,6 +47,17 @@ router.beforeEach((to, from, next) => {
     console.error('解析用户信息失败:', e)
   }
   
+  // 首次登录用户强制返回登录页（未完成改密）
+  if (userInfo && userInfo.first_login) {
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('user_info')
+    sessionStorage.clear()
+    if (to.path !== '/login') {
+      next('/login')
+      return
+    }
+  }
+  
   // 需要认证的页面
   if (to.matched.some(record => record.meta.requiresAuth !== false) && to.path !== '/login') {
     if (!token) {
@@ -59,8 +70,8 @@ router.beforeEach((to, from, next) => {
       next()
     }
   }
-  // 已登录访问登录页，跳转到首页
-  else if (to.path === '/login' && token) {
+  // 已登录访问登录页，跳转到首页（首次登录用户除外）
+  else if (to.path === '/login' && token && !(userInfo && userInfo.first_login)) {
     next('/dashboard')
   }
   // 其他情况（登录页或不需要认证的页面）

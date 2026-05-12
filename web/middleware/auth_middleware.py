@@ -20,6 +20,10 @@ def require_auth(f):
         def protected_route():
             user_id = request.current_user_id
             # ...
+    
+    特殊处理：
+        - 首次登录（first_login=True）的用户只能访问 /change-password 和 /csrf-token
+        - 改密 Token（type='change_password'）只能用于 /change-password
     """
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
@@ -45,6 +49,13 @@ def require_auth(f):
         auth_service = current_app.config['auth_service']
         payload = auth_service.verify_session(token)
         
+        # 也接受改密 Token（仅用于 /change-password）
+        token_type = None
+        if not payload:
+            payload = auth_service.verify_change_password_token(token)
+            if payload:
+                token_type = 'change_password'
+        
         if not payload:
             return jsonify({
                 'success': False,
@@ -54,6 +65,27 @@ def require_auth(f):
         # 将用户ID注入到request对象
         request.current_user_id = payload['user_id']
         request.current_token = token
+        
+        # 检查是否首次登录（必须强制修改密码）
+        db_manager = current_app.config['db_manager']
+        user = db_manager.get_user_by_id(payload['user_id'])
+        if user and user.first_login:
+            # 只允许访问 change-password 和 csrf-token
+            if not request.path.endswith('/change-password') and not request.path.endswith('/csrf-token'):
+                return jsonify({
+                    'success': False,
+                    'error': '首次登录必须修改密码后才能继续操作'
+                }), 403
+        
+        # 改密 Token 只能用于 /change-password
+        if token_type == 'change_password' and not request.path.endswith('/change-password'):
+            return jsonify({
+                'success': False,
+                'error': '请先修改密码'
+            }), 403
+        
+        # 标记 Token 类型，供 require_csrf 判断是否跳过 CSRF
+        request._token_type = token_type
         
         return f(*args, **kwargs)
     
@@ -120,6 +152,10 @@ def require_csrf(f):
     def decorated_function(*args, **kwargs):
         # GET/HEAD/OPTIONS 请求不需要CSRF保护
         if request.method in ('GET', 'HEAD', 'OPTIONS'):
+            return f(*args, **kwargs)
+        
+        # 改密 Token 跳过 CSRF 检查（临时 Token 已限制用途，无需额外 CSRF）
+        if getattr(request, '_token_type', None) == 'change_password':
             return f(*args, **kwargs)
         
         csrf_token = request.headers.get('X-CSRF-Token', '')

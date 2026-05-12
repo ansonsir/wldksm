@@ -272,6 +272,39 @@ class AuthService:
         
         return f"data:image/png;base64,{img_base64}"
 
+    # ==================== 首次登录改密 Token ====================
+
+    def create_change_password_token(self, user_id: int) -> str:
+        """
+        创建首次登录改密临时 Token（有效期5分钟）
+        仅用于修改密码，不能访问其他API
+        """
+        now = datetime.utcnow()
+        expiration = now + timedelta(minutes=5)
+        payload = {
+            'user_id': user_id,
+            'type': 'change_password',
+            'iat': now,
+            'exp': expiration,
+            'jti': secrets.token_urlsafe(16)
+        }
+        return jwt.encode(payload, self.jwt_secret_key, algorithm=JWT_ALGORITHM)
+
+    def verify_change_password_token(self, token: str) -> Optional[Dict]:
+        """验证首次登录改密 Token"""
+        try:
+            payload = jwt.decode(token, self.jwt_secret_key, algorithms=[JWT_ALGORITHM])
+            if payload.get('type') != 'change_password':
+                self.logger.warning("无效的改密 Token 类型")
+                return None
+            return payload
+        except jwt.ExpiredSignatureError:
+            self.logger.warning("改密 Token 已过期")
+            return None
+        except jwt.InvalidTokenError as e:
+            self.logger.warning(f"无效的改密 Token: {e}")
+            return None
+
     # ==================== TOTP 临时会话 Token ====================
 
     def create_totp_session_token(self, user_id: int, ip_address: str, user_agent: str) -> str:
@@ -426,42 +459,119 @@ class AuthService:
         
         # 5. 检查是否需要TOTP
         if user.totp_enabled:
+            # 先检查是否需要先修改密码（首次登录优先于TOTP设置）
+            if user.first_login:
+                self.logger.info(f"首次登录（TOTP已预启用），需要修改密码: {username}")
+                self.db.create_login_log(
+                    user_id=user.id, username=username, ip_address=ip_address,
+                    user_agent=user_agent, login_status='success'
+                )
+                change_pw_token = self.create_change_password_token(user.id)
+                return {
+                    'success': True,
+                    'need_change_password': True,
+                    'user_id': user.id,
+                    'change_password_token': change_pw_token,
+                    'user_info': {
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email,
+                        'is_admin': user.is_admin,
+                        'totp_enabled': False,
+                        'first_login': True,
+                    }
+                }
+            
             # 检查是否需要重新设置TOTP（管理员重置后）
             if user.totp_reset:
-                # 需要重新设置TOTP
                 self.logger.info(f"用户需要重新设置TOTP: {username}")
-                result = self._create_login_session(user, ip_address, user_agent)
-                result['need_totp_setup'] = True  # 需要设置TOTP
-                result['need_totp'] = False
-                result['user_info']['totp_enabled'] = False  # 前端认为未启用
-                result['user_info']['totp_setup_required'] = True  # 需要设置
-                return result
+                token = self.create_session(user.id)
+                refresh_token = self.create_refresh_token(user.id)
+                self.db.create_login_log(
+                    user_id=user.id, username=username, ip_address=ip_address,
+                    user_agent=user_agent, login_status='success'
+                )
+                return {
+                    'success': True,
+                    'need_totp': False,
+                    'need_totp_setup': True,
+                    'token': token,
+                    'refresh_token': refresh_token,
+                    'user_info': {
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email,
+                        'is_admin': user.is_admin,
+                        'totp_enabled': False,
+                        'totp_setup_required': True,
+                        'first_login': False,
+                    }
+                }
             
-            # 检查是否是预启用（用户还未设置）
-            # 如果totp_secret存在但用户从未登录过（last_login为NULL），说明是预启用
+            # 检查是否是预启用（用户还未完成TOTP首次设置）
+            # last_login 在 TOTP 设置完成前不会被更新，作为预启用判断依据
             needs_setup = user.totp_secret and not user.last_login
             
             if needs_setup:
-                # 预启用的TOTP，需要用户首次登录时设置
                 self.logger.info(f"用户预启用TOTP，需要首次设置: {username}")
-                result = self._create_login_session(user, ip_address, user_agent)
-                result['need_totp_setup'] = True  # 需要设置TOTP
-                result['need_totp'] = False
-                # 重要：标记为未完成TOTP设置，前端路由守卫会检查这个字段
-                result['user_info']['totp_enabled'] = False  # 前端认为未启用
-                result['user_info']['totp_setup_required'] = True  # 需要设置
-                return result
+                token = self.create_session(user.id)
+                refresh_token = self.create_refresh_token(user.id)
+                self.db.create_login_log(
+                    user_id=user.id, username=username, ip_address=ip_address,
+                    user_agent=user_agent, login_status='success'
+                )
+                return {
+                    'success': True,
+                    'need_totp': False,
+                    'need_totp_setup': True,
+                    'token': token,
+                    'refresh_token': refresh_token,
+                    'user_info': {
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email,
+                        'is_admin': user.is_admin,
+                        'totp_enabled': False,
+                        'totp_setup_required': True,
+                        'first_login': False,
+                    }
+                }
             else:
                 # 用户已完成TOTP设置，需要验证
                 self.logger.info(f"需要TOTP验证: {username}")
                 return {
                     'success': True,
                     'need_totp': True,
-                    'need_totp_setup': False,  # 不需要设置，只需要验证
+                    'need_totp_setup': False,
                     'user_id': user.id
                 }
         
-        # 6. 登录成功，创建会话（但标记需要设置TOTP）
+        # 6. 登录成功 - 检查是否需要先修改密码
+        if user.first_login:
+            # 首次登录：必须修改密码后才能访问系统，不签发完整 Token
+            self.logger.info(f"首次登录，需要修改密码: {username}")
+            self.db.update_user_login(user.id, success=True)
+            self.db.create_login_log(
+                user_id=user.id, username=username, ip_address=ip_address,
+                user_agent=user_agent, login_status='success'
+            )
+            change_pw_token = self.create_change_password_token(user.id)
+            return {
+                'success': True,
+                'need_change_password': True,
+                'user_id': user.id,
+                'change_password_token': change_pw_token,
+                'user_info': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'is_admin': user.is_admin,
+                    'totp_enabled': False,
+                    'first_login': True,
+                }
+            }
+        
+        # 7. 登录成功，创建会话（但标记需要设置TOTP）
         result = self._create_login_session(user, ip_address, user_agent)
         result['need_totp_setup'] = True  # 标记需要设置TOTP
         return result

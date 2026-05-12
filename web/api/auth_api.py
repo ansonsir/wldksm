@@ -106,7 +106,15 @@ def login():
                                            ip_address=ip_address, user_agent=user_agent)
         
         if result['success']:
-            if result.get('need_totp'):
+            if result.get('need_change_password'):
+                # 首次登录：必须修改密码，不签发完整 Token
+                return success_response({
+                    'need_change_password': True,
+                    'user_id': result['user_id'],
+                    'change_password_token': result['change_password_token'],
+                    'user_info': result['user_info']
+                }, message="首次登录，请先修改密码")
+            elif result.get('need_totp'):
                 # 生成 TOTP 临时会话 Token（替代 Flask session，避免浏览器 cookie 策略问题）
                 totp_session_token = auth_service.create_totp_session_token(
                     result['user_id'], ip_address, user_agent
@@ -335,6 +343,13 @@ def change_password():
         db_manager.reset_user_password(user.id, new_password_hash)
         
         logger.info(f"用户修改密码成功: {user.username} (首次登录: {first_login})")
+        
+        # 首次登录改密后：撤销当前会话，强制用户重新登录
+        if first_login:
+            auth_service.revoke_session(request.current_token)
+            return success_response({
+                'need_relogin': True
+            }, message="密码修改成功，请重新登录")
         
         return success_response(message="密码修改成功")
         

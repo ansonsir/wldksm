@@ -217,6 +217,7 @@ const changingPassword = ref(false)
 const changePasswordFormRef = ref(null)
 const currentUserId = ref(null)
 const currentToken = ref(null)
+const changePasswordToken = ref('')
 
 const changePasswordForm = reactive({
   new_password: '',
@@ -291,7 +292,14 @@ const handleLogin = async () => {
       if (response.data.success) {
         const data = response.data.data
         
-        if (data.need_totp) {
+        if (data.need_change_password) {
+          // 首次登录：必须修改密码，不存储 auth_token
+          changePasswordToken.value = data.change_password_token
+          currentUserId.value = data.user_id
+          localStorage.setItem('user_info', JSON.stringify(data.user_info))
+          ElMessage.warning('首次登录，请先修改密码')
+          showChangePassword.value = true
+        } else if (data.need_totp) {
           // 需要TOTP验证（已启用TOTP的用户）
           needTotp.value = true
           // 保存 totp_session_token 用于 TOTP 第二步验证
@@ -300,7 +308,7 @@ const handleLogin = async () => {
           }
           ElMessage.info('请输入动态验证码')
         } else if (data.need_totp_setup) {
-          // 需要设置TOTP（未启用TOTP的用户，包括重置后需要重新设置的用户）
+          // 需要设置TOTP（密码已修改后的用户）
           secureSetItem('auth_token', data.token)
           secureSetItem('refresh_token', data.refresh_token)
           localStorage.setItem('user_info', JSON.stringify(data.user_info))
@@ -312,17 +320,11 @@ const handleLogin = async () => {
           currentUserId.value = data.user_info.id
           currentToken.value = data.token
           
-          // 检查是否首次登录（需要修改密码）
-          if (data.user_info.first_login) {
-            ElMessage.warning('首次登录，请先修改密码')
-            showChangePassword.value = true
-          } else {
-            // 非首次登录，直接显示TOTP设置对话框
-            ElMessage.warning('需要设置双因素认证')
-            showTotpSetup.value = true
-          }
+          // 显示TOTP设置对话框
+          ElMessage.warning('需要设置双因素认证')
+          showTotpSetup.value = true
         } else {
-          // 已启用TOTP且验证通过，或者系统不强制TOTP
+          // 已启用TOTP且验证通过
           secureSetItem('auth_token', data.token)
           secureSetItem('refresh_token', data.refresh_token)
           localStorage.setItem('user_info', JSON.stringify(data.user_info))
@@ -331,15 +333,7 @@ const handleLogin = async () => {
           fetchCsrfToken().catch(() => {})
           
           ElMessage.success('登录成功')
-          
-          // 检查是否首次登录
-          if (data.user_info.first_login) {
-            currentUserId.value = data.user_info.id
-            currentToken.value = data.token
-            showChangePassword.value = true
-          } else {
-            router.push('/dashboard')
-          }
+          router.push('/dashboard')
         }
       }
     } catch (error) {
@@ -387,17 +381,8 @@ const handleTotpLogin = async () => {
         
         ElMessage.success('登录成功')
         
-        // 检查是否首次登录
-        if (data.user_info.first_login) {
-          // 保存当前用户ID和token，用于修改密码
-          currentUserId.value = data.user_info.id
-          currentToken.value = data.token
-          
-          // 显示修改密码对话框
-          setTimeout(() => {
-            showChangePassword.value = true
-          }, 500)
-        } else if (!data.user_info.totp_enabled) {
+        // TOTP验证通过后的登录
+        if (!data.user_info.totp_enabled) {
           // 如果未启用TOTP，显示TOTP设置对话框
           setTimeout(() => {
             showTotpSetup.value = true
@@ -441,30 +426,34 @@ const handleChangePassword = async () => {
     
     changingPassword.value = true
     try {
+      // 使用临时改密 Token（非 auth_token）
+      const authToken = changePasswordToken.value || currentToken.value
       const response = await axios.post('/api/v1/auth/change-password', {
-        old_password: '',  // 首次登录不需要旧密码
+        old_password: '',
         new_password: changePasswordForm.new_password,
-        first_login: true  // 标记首次登录
+        first_login: !!changePasswordToken.value
       }, {
         headers: {
-          'Authorization': `Bearer ${currentToken.value}`
+          'Authorization': `Bearer ${authToken}`
         }
       })
       
       if (response.data.success) {
-        ElMessage.success('密码修改成功')
-        showChangePassword.value = false
-        
-        // 更新本地user_info
-        const userInfo = JSON.parse(localStorage.getItem('user_info'))
-        userInfo.first_login = false
-        localStorage.setItem('user_info', JSON.stringify(userInfo))
-        
-        // 检查是否需要设置TOTP
-        if (!userInfo.totp_enabled) {
-          showTotpSetup.value = true
+        if (response.data.data?.need_relogin) {
+          // 首次登录改密后需要重新登录
+          ElMessage.success('密码修改成功，请重新登录')
+          showChangePassword.value = false
+          // 清除所有存储，回到登录页面
+          localStorage.removeItem('user_info')
+          localStorage.removeItem('auth_token')
+          localStorage.removeItem('refresh_token')
+          sessionStorage.clear()
+          changePasswordToken.value = ''
+          changePasswordForm.new_password = ''
+          changePasswordForm.confirm_password = ''
         } else {
-          router.push('/dashboard')
+          ElMessage.success('密码修改成功')
+          showChangePassword.value = false
         }
       }
     } catch (error) {
