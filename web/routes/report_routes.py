@@ -4,9 +4,12 @@
 """
 from pathlib import Path
 from datetime import datetime
+import logging
 from flask import Blueprint, request, jsonify, send_file, current_app
-from web.middleware.auth_middleware import require_auth
+from web.middleware.auth_middleware import require_auth, require_csrf
 from core.template_manager import TemplateManager
+
+logger = logging.getLogger(__name__)
 
 report_bp = Blueprint('report', __name__)
 
@@ -88,11 +91,13 @@ def get_reports():
         all_reports.sort(key=lambda x: x['created'] or '', reverse=True)
         return jsonify({'success': True, 'data': all_reports})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("获取报告列表失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '获取报告列表失败，请稍后重试'}), 500
 
 
 @report_bp.route('/api/reports/download', methods=['POST'])
 @require_auth
+@require_csrf
 def download_report():
     """下载报告文件"""
     try:
@@ -121,11 +126,13 @@ def download_report():
 
         return send_file(str(path), as_attachment=True, download_name=path.name)
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("下载报告失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '下载报告失败，请稍后重试'}), 500
 
 
 @report_bp.route('/api/reports/delete', methods=['POST'])
 @require_auth
+@require_csrf
 def delete_reports():
     """删除报告文件"""
     try:
@@ -168,11 +175,13 @@ def delete_reports():
             'failed': failed
         })
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("删除报告失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '删除报告失败，请稍后重试'}), 500
 
 
 @report_bp.route('/api/reports/send', methods=['POST'])
 @require_auth
+@require_csrf
 def send_report_mail():
     """发送报告邮件"""
     try:
@@ -198,7 +207,8 @@ def send_report_mail():
         )
         return jsonify({'success': success, 'message': message})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("发送报告邮件失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '发送报告邮件失败，请稍后重试'}), 500
 
 
 # ==================== 模板管理 ====================
@@ -213,11 +223,13 @@ def get_templates():
         templates = template_manager.list_templates()
         return jsonify({'success': True, 'data': templates})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("获取模板列表失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '获取模板列表失败，请稍后重试'}), 500
 
 
 @report_bp.route('/api/templates/upload', methods=['POST'])
 @require_auth
+@require_csrf
 def upload_template():
     """上传模板文件"""
     try:
@@ -264,11 +276,13 @@ def upload_template():
 
         return jsonify({'success': success, 'message': msg})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("上传模板失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '上传模板失败，请稍后重试'}), 500
 
 
 @report_bp.route('/api/templates/delete', methods=['POST'])
 @require_auth
+@require_csrf
 def delete_template():
     """删除模板"""
     try:
@@ -284,19 +298,26 @@ def delete_template():
         path = Path(file_path)
         if not path.is_absolute():
             path = project_root / path
-        if path.exists() and path.is_file():
-            path.unlink()
+        # 路径穿越保护
+        resolved_path = path.resolve()
+        project_root_resolved = project_root.resolve()
+        if not str(resolved_path).startswith(str(project_root_resolved)):
+            return jsonify({'success': False, 'message': '非法文件路径'}), 403
+        if resolved_path.exists() and resolved_path.is_file():
+            resolved_path.unlink()
 
         if template_id:
             db_manager.delete_template(template_id)
 
         return jsonify({'success': True, 'message': '删除成功'})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("删除模板失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '删除模板失败，请稍后重试'}), 500
 
 
 @report_bp.route('/api/templates/preview', methods=['POST'])
 @require_auth
+@require_csrf
 def preview_template():
     """预览模板内容"""
     try:
@@ -310,11 +331,17 @@ def preview_template():
         if not path.is_absolute():
             path = project_root / path
 
-        if not path.exists():
+        # 路径穿越保护
+        resolved_path = path.resolve()
+        project_root_resolved = project_root.resolve()
+        if not str(resolved_path).startswith(str(project_root_resolved)):
+            return jsonify({'success': False, 'message': '非法文件路径'}), 403
+
+        if not resolved_path.exists():
             return jsonify({'success': False, 'message': '文件不存在'}), 404
 
         from docx import Document
-        doc = Document(str(path))
+        doc = Document(str(resolved_path))
         paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
 
         return jsonify({
@@ -326,4 +353,5 @@ def preview_template():
             }
         })
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("预览模板失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '预览模板失败，请稍后重试'}), 500

@@ -4,8 +4,10 @@
 """
 import logging
 from flask import Blueprint, request, jsonify, current_app
-from web.middleware.auth_middleware import require_auth
+from web.middleware.auth_middleware import require_auth, require_csrf
 from web.mail_service import MailConfig
+
+logger = logging.getLogger(__name__)
 
 
 config_bp = Blueprint('config', __name__)
@@ -47,11 +49,13 @@ def get_config():
             }
         })
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("获取配置失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '获取配置失败，请稍后重试'}), 500
 
 
 @config_bp.route('/api/config', methods=['POST'])
 @require_auth
+@require_csrf
 def update_config():
     """更新配置"""
     try:
@@ -59,8 +63,28 @@ def update_config():
         data = request.get_json()
         config = config_manager.get_config()
 
+        # 白名单：仅允许更新的安全字段
+        allowed_fields = {
+            # 文件路径
+            'ip_range_file', 'exclude_ips_file', 'ports_file',
+            'save_result_file', 'template_file', 'redarea_file', 'log_file',
+            # 扫描参数
+            'max_workers', 'ulimit', 'timeout', 'batch_size',
+            # 端口
+            'ports',
+            # 报告
+            'report_prefix', 'report_suffix',
+            # 扫描模式
+            'scan_mode',
+            # 数据库/目录
+            'db_path', 'template_dir', 'report_dir',
+            # 邮件
+            'smtp_server', 'smtp_port', 'smtp_user', 'smtp_password',
+            'smtp_ssl', 'default_sender', 'default_recipients',
+        }
+
         for key, value in data.items():
-            if hasattr(config, key):
+            if key in allowed_fields and hasattr(config, key):
                 setattr(config, key, value)
 
         config_manager.save_to_yaml()
@@ -80,7 +104,8 @@ def update_config():
 
         return jsonify({'success': True, 'message': '配置已更新'})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("更新配置失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '更新配置失败，请稍后重试'}), 500
 
 
 @config_bp.route('/api/scan/defaults', methods=['GET'])
@@ -126,7 +151,8 @@ def get_scan_defaults():
             }
         })
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("获取扫描默认参数失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '获取扫描默认参数失败，请稍后重试'}), 500
 
 
 @config_bp.route('/api/scan/areas', methods=['GET'])
@@ -150,7 +176,8 @@ def get_scan_areas():
             ]
         })
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("获取扫描区域失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '获取扫描区域失败，请稍后重试'}), 500
 
 
 @config_bp.route('/api/mail/config', methods=['GET'])
@@ -177,11 +204,13 @@ def get_mail_config():
             })
         return jsonify({'success': True, 'data': {}})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("获取邮件配置失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '获取邮件配置失败，请稍后重试'}), 500
 
 
 @config_bp.route('/api/mail/config', methods=['POST'])
 @require_auth
+@require_csrf
 def save_mail_config():
     """保存邮件配置"""
     try:
@@ -211,11 +240,13 @@ def save_mail_config():
             return jsonify({'success': True, 'message': '邮件配置已保存'})
         return jsonify({'success': False, 'message': '保存失败'}), 500
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("保存邮件配置失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '保存邮件配置失败，请稍后重试'}), 500
 
 
 @config_bp.route('/api/mail/test', methods=['POST'])
 @require_auth
+@require_csrf
 def test_mail():
     """测试邮件配置"""
     try:
@@ -232,7 +263,8 @@ def test_mail():
         success, message = mailer.test_connection(config)
         return jsonify({'success': success, 'message': message})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("测试邮件失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '测试邮件失败，请稍后重试'}), 500
 
 
 # ==================== Webhook 配置 ====================
@@ -246,11 +278,13 @@ def get_webhook_configs():
         configs = db_manager.get_webhook_configs()
         return jsonify({'success': True, 'data': configs})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("获取Webhook配置失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '获取Webhook配置失败，请稍后重试'}), 500
 
 
 @config_bp.route('/api/webhook/configs', methods=['POST'])
 @require_auth
+@require_csrf
 def save_webhook_config():
     """保存 Webhook 配置"""
     try:
@@ -276,11 +310,13 @@ def save_webhook_config():
             return jsonify({'success': True, 'message': 'Webhook 配置已保存'})
         return jsonify({'success': False, 'message': '保存失败'}), 500
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("保存Webhook配置失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '保存Webhook配置失败，请稍后重试'}), 500
 
 
 @config_bp.route('/api/webhook/configs/<platform>', methods=['DELETE'])
 @require_auth
+@require_csrf
 def delete_webhook_config(platform):
     """删除 Webhook 配置"""
     try:
@@ -290,11 +326,13 @@ def delete_webhook_config(platform):
         get_webhook_notifier().remove_config(platform)
         return jsonify({'success': True, 'message': 'Webhook 配置已删除'})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("删除Webhook配置失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '删除Webhook配置失败，请稍后重试'}), 500
 
 
 @config_bp.route('/api/webhook/test', methods=['POST'])
 @require_auth
+@require_csrf
 def test_webhook():
     """测试 Webhook 通知"""
     try:
@@ -335,7 +373,8 @@ def test_webhook():
             'message': '测试消息已发送' if all_success else '部分平台发送失败'
         })
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("测试Webhook失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '测试Webhook失败，请稍后重试'}), 500
 
 
 # ==================== 扫描策略模板 ====================
@@ -391,4 +430,5 @@ def get_scan_policies():
             'data': list(SCAN_POLICIES.values())
         })
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("获取扫描策略失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '获取扫描策略失败，请稍后重试'}), 500

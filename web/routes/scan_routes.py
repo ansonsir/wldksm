@@ -6,9 +6,11 @@ import logging
 from pathlib import Path
 from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
-from web.middleware.auth_middleware import require_auth
+from web.middleware.auth_middleware import require_auth, require_csrf
 from web.utils import success_response, error_response
 from core.database import ScanResultDetail
+
+logger = logging.getLogger(__name__)
 
 scan_bp = Blueprint('scan', __name__)
 
@@ -28,6 +30,7 @@ def _get_project_root():
 
 @scan_bp.route('/api/scan/start', methods=['POST'])
 @require_auth
+@require_csrf
 def start_scan():
     """启动扫描任务"""
     try:
@@ -64,11 +67,13 @@ def start_scan():
     except ValueError as e:
         return error_response(message=str(e), code=400)
     except Exception as e:
-        return error_response(message=str(e), code=500)
+        logger.error("启动扫描任务失败: %s", e, exc_info=True)
+        return error_response(message='启动扫描任务失败，请稍后重试', code=500)
 
 
 @scan_bp.route('/api/scan/stop/<task_id>', methods=['POST'])
 @require_auth
+@require_csrf
 def stop_scan(task_id):
     """停止扫描任务"""
     _, _, scan_service = _get_services()
@@ -137,7 +142,8 @@ def get_scan_history():
 
         return jsonify({'success': True, 'data': data})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("获取扫描历史失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '获取扫描历史失败，请稍后重试'}), 500
 
 
 @scan_bp.route('/api/scan/history/<int:record_id>', methods=['GET'])
@@ -210,11 +216,13 @@ def get_scan_detail(record_id):
             }
         })
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("获取扫描详情失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '获取扫描详情失败，请稍后重试'}), 500
 
 
 @scan_bp.route('/api/scan/history/delete', methods=['POST'])
 @require_auth
+@require_csrf
 def delete_scan_history():
     """删除扫描历史记录"""
     try:
@@ -265,4 +273,5 @@ def delete_scan_history():
             'failed': failed
         })
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        logger.error("删除扫描历史失败: %s", e, exc_info=True)
+        return jsonify({'success': False, 'message': '删除扫描历史失败，请稍后重试'}), 500

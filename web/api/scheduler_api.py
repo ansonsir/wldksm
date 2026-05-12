@@ -1,9 +1,12 @@
 """
 定时任务管理 API
 """
+import logging
 from flask import Blueprint, request, jsonify
 from core.database import ScheduledTask
-from web.middleware.auth_middleware import require_auth
+from web.middleware.auth_middleware import require_auth, require_csrf
+
+logger = logging.getLogger(__name__)
 
 # 蓝图将在 app.py 中创建并传入 scheduler 实例
 scheduler_bp = Blueprint('scheduler', __name__)
@@ -55,14 +58,16 @@ def get_tasks():
             'data': task_list
         })
     except Exception as e:
+        logger.error("获取定时任务列表失败: %s", e, exc_info=True)
         return jsonify({
             'success': False,
-            'message': str(e)
+            'message': '获取定时任务列表失败，请稍后重试'
         }), 500
 
 
 @scheduler_bp.route('/api/scheduler/tasks', methods=['POST'])
 @require_auth
+@require_csrf
 def create_task():
     """创建定时任务"""
     try:
@@ -123,14 +128,16 @@ def create_task():
             'message': str(e)
         }), 400
     except Exception as e:
+        logger.error("创建定时任务失败: %s", e, exc_info=True)
         return jsonify({
             'success': False,
-            'message': str(e)
+            'message': '创建定时任务失败，请稍后重试'
         }), 500
 
 
 @scheduler_bp.route('/api/scheduler/tasks/<int:task_id>', methods=['PUT'])
 @require_auth
+@require_csrf
 def update_task(task_id):
     """更新定时任务"""
     try:
@@ -176,14 +183,16 @@ def update_task(task_id):
             'message': str(e)
         }), 400
     except Exception as e:
+        logger.error("更新定时任务失败: %s", e, exc_info=True)
         return jsonify({
             'success': False,
-            'message': str(e)
+            'message': '更新定时任务失败，请稍后重试'
         }), 500
 
 
 @scheduler_bp.route('/api/scheduler/tasks/<int:task_id>', methods=['DELETE'])
 @require_auth
+@require_csrf
 def delete_task(task_id):
     """删除定时任务"""
     try:
@@ -210,14 +219,16 @@ def delete_task(task_id):
             }), 500
         
     except Exception as e:
+        logger.error("删除定时任务失败: %s", e, exc_info=True)
         return jsonify({
             'success': False,
-            'message': str(e)
+            'message': '删除定时任务失败，请稍后重试'
         }), 500
 
 
 @scheduler_bp.route('/api/scheduler/tasks/<int:task_id>/toggle', methods=['POST'])
 @require_auth
+@require_csrf
 def toggle_task(task_id):
     """启用/禁用定时任务"""
     try:
@@ -245,14 +256,16 @@ def toggle_task(task_id):
             }), 500
         
     except Exception as e:
+        logger.error("切换任务状态失败: %s", e, exc_info=True)
         return jsonify({
             'success': False,
-            'message': str(e)
+            'message': '切换任务状态失败，请稍后重试'
         }), 500
 
 
 @scheduler_bp.route('/api/scheduler/tasks/<int:task_id>/run', methods=['POST'])
 @require_auth
+@require_csrf
 def run_now(task_id):
     """立即执行定时任务"""
     try:
@@ -280,14 +293,16 @@ def run_now(task_id):
             }), 500
         
     except Exception as e:
+        logger.error("立即执行任务失败: %s", e, exc_info=True)
         return jsonify({
             'success': False,
-            'message': str(e)
+            'message': '立即执行任务失败，请稍后重试'
         }), 500
 
 
 @scheduler_bp.route('/api/scheduler/tasks/<int:task_id>/stop', methods=['POST'])
 @require_auth
+@require_csrf
 def stop_task(task_id):
     """停止正在运行的定时任务"""
     try:
@@ -314,7 +329,8 @@ def stop_task(task_id):
             }), 400
         
     except Exception as e:
+        logger.error("停止任务失败: %s", e, exc_info=True)
         return jsonify({
             'success': False,
-            'message': str(e)
+            'message': '停止任务失败，请稍后重试'
         }), 500

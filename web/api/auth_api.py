@@ -63,6 +63,7 @@ def get_csrf_token():
 
 
 @auth_bp.route('/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login():
     """
     用户登录（第一步：验证用户名密码+验证码）
@@ -142,6 +143,7 @@ def login():
 
 
 @auth_bp.route('/login/totp', methods=['POST'])
+@limiter.limit("5 per minute")
 def login_totp():
     """
     TOTP验证（第二步）
@@ -414,6 +416,7 @@ def verify_totp_setup():
 
 @auth_bp.route('/disable-totp', methods=['POST'])
 @require_auth
+@require_csrf
 def disable_totp():
     """禁用TOTP（仅管理员）"""
     try:
@@ -698,6 +701,7 @@ def delete_user(user_id):
 
 @auth_bp.route('/users/<int:user_id>/enable-totp', methods=['POST'])
 @require_admin
+@require_csrf
 def enable_user_totp(user_id):
     """启用用户TOTP（管理员）"""
     try:
@@ -729,6 +733,7 @@ def enable_user_totp(user_id):
 
 @auth_bp.route('/users/<int:user_id>/disable-totp', methods=['POST'])
 @require_admin
+@require_csrf
 def disable_user_totp(user_id):
     """禁用用户TOTP（管理员）"""
     try:
@@ -757,6 +762,7 @@ def disable_user_totp(user_id):
 
 @auth_bp.route('/users/<int:user_id>/reset-totp', methods=['POST'])
 @require_admin
+@require_csrf
 def reset_user_totp(user_id):
     """重置用户TOTP（管理员）"""
     try:

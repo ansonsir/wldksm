@@ -1246,16 +1246,15 @@ class DatabaseManager:
             cursor = conn.cursor()
             trend = []
             for i in range(days - 1, -1, -1):
-                day = f"datetime('now', '-{i} days')"
-                cursor.execute(f"""
+                cursor.execute("""
                     SELECT 
                         COALESCE(SUM(total_hosts), 0) as host_count,
                         COALESCE(SUM(open_ports_count), 0) as port_count,
                         COUNT(*) as scan_count
                     FROM scan_records 
-                    WHERE date(created_at) = date({day})
+                    WHERE date(created_at) = date('now', ? || ' days')
                     AND scan_status = 'completed'
-                """)
+                """, (str(-i),))
                 row = cursor.fetchone()
                 from datetime import datetime, timedelta
                 day_date = (datetime.now() - timedelta(days=i)).strftime('%m/%d')
