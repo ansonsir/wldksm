@@ -35,6 +35,7 @@ def start_scan():
     """启动扫描任务"""
     try:
         config_manager, _, scan_service = _get_services()
+        socketio = current_app.config.get('socketio')
         data = request.get_json()
 
         task_id = scan_service.create_task(
@@ -57,6 +58,16 @@ def start_scan():
                 task['open_ports'] = extra.get('open_ports', 0)
                 task['elapsed_time'] = extra.get('elapsed_time', 0)
                 task['estimated_remaining'] = extra.get('estimated_remaining', 0)
+            # WebSocket 推送进度
+            if socketio:
+                payload = {
+                    'task_id': task_id, 'progress': completed, 'total': total,
+                    'message': message, 'status': 'running',
+                }
+                for k in ('current_cidr', 'found_hosts', 'open_ports', 'elapsed_time', 'estimated_remaining'):
+                    if k in extra:
+                        payload[k] = extra[k]
+                socketio.emit('scan_progress', payload, room=f'scan_{task_id}')
 
         scan_service.execute_task(task_id, _get_project_root(), progress_callback)
 

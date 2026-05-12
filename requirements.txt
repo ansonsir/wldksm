@@ -4,6 +4,7 @@
 # Web框架
 Flask>=3.0.0
 flask-cors>=5.0.0
+flask-socketio>=5.4.0
 
 # 报告生成
 docxtpl>=0.16.0

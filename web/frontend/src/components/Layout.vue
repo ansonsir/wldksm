@@ -40,6 +40,10 @@
           <el-icon><List /></el-icon>
           <span>扫描历史</span>
         </el-menu-item>
+        <el-menu-item index="/assets">
+          <el-icon><TrendCharts /></el-icon>
+          <span>资产追踪</span>
+        </el-menu-item>
         <el-menu-item index="/reports">
           <el-icon><Document /></el-icon>
           <span>报告管理</span>
@@ -171,7 +175,7 @@ const breadcrumbs = computed(() => {
   const titles = {
     '/dashboard': '概览', '/scan': '扫描任务', '/scheduler': '定时任务',
     '/history': '扫描历史', '/reports': '报告管理', '/templates': '模板管理',
-    '/settings': '系统配置'
+    '/assets': '资产追踪', '/settings': '系统配置'
   }
   const current = titles[route.path] || route.path
   return ['首页', current]

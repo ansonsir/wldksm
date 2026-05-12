@@ -109,6 +109,7 @@ import { ElMessage } from 'element-plus'
 import { VideoPlay, VideoPause, Loading, CircleCheck } from '@element-plus/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
 import api from '@/api'
+import { connect as connectSocket, joinRoom, leaveRoom, on, off } from '@/utils/socket'
 
 const scanForm = reactive({
   ip_ranges: '',
@@ -126,10 +127,7 @@ const currentTaskId = ref('')
 const scanProgress = ref(0)
 const scanMessage = ref('')
 const scanLogs = ref([])
-let scanStatusTimer = null
-let lastProgress = 0
-let consecutiveSameProgress = 0
-let currentPollInterval = 2000
+let currentRoom = ''
 
 const scanProgressStatus = computed(() => scanCompleted.value ? 'success' : '')
 
@@ -167,12 +165,61 @@ const applyPolicy = (policy) => {
   scanForm.max_workers = policy.max_workers
 }
 
+// --- WebSocket 事件处理 ---
+const onScanProgress = (data) => {
+  if (data.task_id !== currentTaskId.value) return
+  scanProgress.value = data.total > 0 ? Math.round((data.progress / data.total) * 100) : 0
+  const parts = [data.message]
+  if (data.found_hosts > 0) parts.push(`${data.found_hosts} 台主机`)
+  if (data.open_ports > 0) parts.push(`${data.open_ports} 端口`)
+  if (data.elapsed_time > 0) parts.push(`已用 ${formatTime(data.elapsed_time)}`)
+  if (data.estimated_remaining > 0) parts.push(`剩余 ${formatTime(data.estimated_remaining)}`)
+  scanMessage.value = parts.join(' | ')
+}
+
+const onScanStatus = (data) => {
+  if (data.task_id !== currentTaskId.value) return
+  if (data.status === 'completed') {
+    scanning.value = false
+    scanCompleted.value = true
+    scanMessage.value = data.message || '扫描完成'
+    if (currentRoom) { leaveRoom(currentRoom); currentRoom = '' }
+    localStorage.removeItem('running_task_id')
+    ElMessage.success('扫描完成！')
+  } else if (data.status === 'failed') {
+    scanning.value = false
+    if (currentRoom) { leaveRoom(currentRoom); currentRoom = '' }
+    localStorage.removeItem('running_task_id')
+    ElMessage.warning(data.message || '扫描失败')
+  } else if (data.status === 'cancelled') {
+    scanning.value = false
+    if (currentRoom) { leaveRoom(currentRoom); currentRoom = '' }
+    localStorage.removeItem('running_task_id')
+    ElMessage.info('扫描已取消')
+  }
+}
+
+const registerSocketListeners = () => {
+  on('scan_progress', onScanProgress)
+  on('scan_status', onScanStatus)
+}
+
+
 const startScan = async () => {
   scanning.value = true
   scanCompleted.value = false
   scanProgress.value = 0
   scanMessage.value = '正在启动...'
   scanLogs.value = []
+
+  // 确保 WebSocket 已连接
+  const s = connectSocket()
+  if (!s.connected) {
+    await new Promise((resolve) => {
+      s.once('connect', resolve)
+      setTimeout(resolve, 3000)
+    })
+  }
 
   try {
     const res = await api.post('/api/v1/scan/start', {
@@ -184,8 +231,10 @@ const startScan = async () => {
     if (res.success) {
       currentTaskId.value = res.data.task_id
       localStorage.setItem('running_task_id', res.data.task_id)
+      // 加入 WebSocket 房间
+      currentRoom = `scan_${res.data.task_id}`
+      joinRoom(currentRoom)
       ElMessage.success('扫描任务已启动')
-      startStatusPolling()
     } else {
       ElMessage.error(res.message)
       scanning.value = false
@@ -205,68 +254,49 @@ const stopScan = async () => {
   } catch (e) {}
 }
 
-const startStatusPolling = () => {
-  if (scanStatusTimer) clearInterval(scanStatusTimer)
-  lastProgress = 0
-  consecutiveSameProgress = 0
-  currentPollInterval = 2000
-
-  const poll = async () => {
-    if (!currentTaskId.value) { clearInterval(scanStatusTimer); return }
-    try {
-      const res = await api.get(`/api/v1/scan/status/${currentTaskId.value}`)
-      if (res.success) {
-        const d = res.data
-        scanProgress.value = Math.round((d.progress / d.total) * 100) || 0
-        if (d.status === 'running') {
-          if (d.progress === lastProgress) {
-            consecutiveSameProgress++
-            if (consecutiveSameProgress >= 3) currentPollInterval = Math.min(currentPollInterval * 1.5, 10000)
-          } else {
-            consecutiveSameProgress = 0
-            currentPollInterval = Math.max(currentPollInterval * 0.8, 1000)
-          }
-          lastProgress = d.progress
-          if (scanStatusTimer) clearInterval(scanStatusTimer)
-          scanStatusTimer = setInterval(poll, currentPollInterval)
-        }
-        let parts = [d.message]
-        if (d.found_hosts > 0) parts.push(`${d.found_hosts} 台主机`)
-        if (d.open_ports > 0) parts.push(`${d.open_ports} 端口`)
-        if (d.elapsed_time > 0) parts.push(`已用 ${formatTime(d.elapsed_time)}`)
-        if (d.estimated_remaining > 0) parts.push(`剩余 ${formatTime(d.estimated_remaining)}`)
-        scanMessage.value = parts.join(' | ')
-        if (d.status === 'completed') {
-          scanning.value = false; scanCompleted.value = true
-          clearInterval(scanStatusTimer); localStorage.removeItem('running_task_id')
-          ElMessage.success('扫描完成！')
-        } else if (d.status === 'failed' || d.status === 'cancelled') {
-          scanning.value = false
-          clearInterval(scanStatusTimer); localStorage.removeItem('running_task_id')
-          ElMessage.warning(d.message)
-        }
-      }
-    } catch (e) {}
-  }
-  scanStatusTimer = setInterval(poll, currentPollInterval)
-}
-
 onMounted(() => {
   loadScanDefaults()
   loadPolicies()
+
+  // 建立 WebSocket 连接并注册事件
+  const s = connectSocket()
+  registerSocketListeners()
+
+  // 恢复未完成的扫描任务
   const saved = localStorage.getItem('running_task_id')
   if (saved) {
     currentTaskId.value = saved
     scanning.value = true
     scanMessage.value = '恢复中...'
+    currentRoom = `scan_${saved}`
+    if (s.connected) {
+      joinRoom(currentRoom)
+    } else {
+      s.once('connect', () => joinRoom(currentRoom))
+    }
+    // 验证任务是否仍在运行
     api.get(`/api/v1/scan/status/${saved}`).then(res => {
-      if (res.success && res.data.status === 'running') startStatusPolling()
-      else { scanning.value = false; scanCompleted.value = res.data?.status === 'completed'; localStorage.removeItem('running_task_id') }
-    }).catch(() => { scanning.value = false; localStorage.removeItem('running_task_id') })
+      if (res.success && res.data.status === 'running') {
+        // WebSocket 会自动更新进度
+      } else {
+        scanning.value = false
+        scanCompleted.value = res.data?.status === 'completed'
+        if (currentRoom) { leaveRoom(currentRoom); currentRoom = '' }
+        localStorage.removeItem('running_task_id')
+      }
+    }).catch(() => {
+      scanning.value = false
+      if (currentRoom) { leaveRoom(currentRoom); currentRoom = '' }
+      localStorage.removeItem('running_task_id')
+    })
   }
 })
 
-onUnmounted(() => { if (scanStatusTimer) clearInterval(scanStatusTimer) })
+onUnmounted(() => {
+  if (currentRoom) { leaveRoom(currentRoom); currentRoom = '' }
+  off('scan_progress', onScanProgress)
+  off('scan_status', onScanStatus)
+})
 </script>
 
 <style scoped>

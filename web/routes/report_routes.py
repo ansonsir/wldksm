@@ -99,11 +99,12 @@ def get_reports():
 @require_auth
 @require_csrf
 def download_report():
-    """下载报告文件"""
+    """下载报告文件（支持格式: docx/csv/json/html）"""
     try:
         project_root = _get_project_root()
         data = request.get_json() or {}
         file_path = data.get('path')
+        export_format = data.get('format', 'docx').lower()
         if not file_path:
             return jsonify({'success': False, 'message': '缺少文件路径'}), 400
 
@@ -124,10 +125,88 @@ def download_report():
         except ValueError:
             return jsonify({'success': False, 'message': '非法的文件路径'}), 403
 
-        return send_file(str(path), as_attachment=True, download_name=path.name)
+        # 如果是 DOCX 格式，直接下载
+        if export_format == 'docx':
+            return send_file(str(path), as_attachment=True, download_name=path.name)
+
+        # 其他格式：从数据库读取扫描结果，实时生成报告
+        db_manager, _ = _get_services()
+        record_id = data.get('record_id')
+        if not record_id:
+            return jsonify({'success': False, 'message': '缺少 record_id，无法生成非 DOCX 格式报告'}), 400
+
+        return _generate_formatted_report(db_manager, project_root, record_id, export_format, path)
     except Exception as e:
         logger.error("下载报告失败: %s", e, exc_info=True)
         return jsonify({'success': False, 'message': '下载报告失败，请稍后重试'}), 500
+
+
+def _generate_formatted_report(db_manager, project_root, record_id, export_format, path):
+    """实时生成格式化报告并返回"""
+    import tempfile
+    import os
+    from core.report import (
+        generate_csv_report, generate_json_report, generate_html_report,
+        ReportDataAnalyzer
+    )
+
+    record = db_manager.get_scan_record_by_id(record_id)
+    if not record:
+        return jsonify({'success': False, 'message': '扫描记录不存在'}), 404
+
+    # 获取扫描结果
+    results = db_manager.get_scan_results(record_id)
+    if not results and record.result_file:
+        # 从结果文件读取
+        result_path = Path(record.result_file)
+        if not result_path.is_absolute():
+            result_path = project_root / result_path
+    else:
+        # 从数据库构建临时结果文件
+        import tempfile
+        result_path = Path(tempfile.mktemp(suffix='.txt'))
+        with open(result_path, 'w', encoding='utf-8') as f:
+            from collections import defaultdict
+            ip_ports = defaultdict(list)
+            for r in results:
+                ip_ports[r.ip_address].append(r.port_num)
+            for ip, ports in ip_ports.items():
+                f.write(f"{ip}  {ports}\n")
+
+    # 分析数据
+    analyzer = ReportDataAnalyzer()
+    if str(result_path).endswith('.txt') and result_path.exists():
+        analyzer.load_scan_results(str(result_path))
+
+    scan_data = {
+        'scan_start_time': record.start_time or '',
+        'scan_end_time': record.end_time or '',
+        'scan_duration': f"{record.duration_seconds} 秒" if record.duration_seconds else '',
+        'ip_range': record.ip_ranges or '',
+        'ports': '',
+    }
+    analysis = analyzer.analyze(enable_redarea=False)
+
+    # 生成临时文件
+    suffix = f".{export_format}"
+    temp_output = Path(tempfile.mktemp(suffix='.docx'))
+    output_str = str(temp_output)
+
+    if export_format == 'csv':
+        generate_csv_report(scan_data, analysis, output_str)
+    elif export_format == 'json':
+        generate_json_report(scan_data, analysis, output_str)
+    elif export_format == 'html':
+        generate_html_report(scan_data, analysis, output_str)
+    else:
+        return jsonify({'success': False, 'message': f'不支持的格式: {export_format}'}), 400
+
+    actual_file = output_str.replace('.docx', suffix)
+    actual_path = Path(actual_file)
+    if actual_path.exists():
+        download_name = path.stem + suffix
+        return send_file(str(actual_path), as_attachment=True, download_name=download_name)
+    return jsonify({'success': False, 'message': '生成报告失败'}), 500
 
 
 @report_bp.route('/reports/delete', methods=['POST'])

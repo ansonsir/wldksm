@@ -42,7 +42,19 @@
         <el-table-column prop="created" label="生成时间" width="155" align="center" />
         <el-table-column label="操作" width="200" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" type="primary" @click="downloadReport(row.path)">下载</el-button>
+            <el-dropdown @command="(fmt) => downloadReport(row.path, row.record_id, fmt)" style="margin-right:4px">
+              <el-button size="small" type="primary">
+                下载<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="docx">📄 DOCX</el-dropdown-item>
+                  <el-dropdown-item command="csv">📊 CSV</el-dropdown-item>
+                  <el-dropdown-item command="json">📋 JSON</el-dropdown-item>
+                  <el-dropdown-item command="html">🌐 HTML</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
             <el-button size="small" type="success" @click="openSendMail(row)">邮件</el-button>
             <el-button size="small" type="danger" @click="deleteReport(row)">删除</el-button>
           </template>
@@ -87,7 +99,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh } from '@element-plus/icons-vue'
+import { Search, Refresh, ArrowDown } from '@element-plus/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
 import api from '@/api'
 
@@ -145,16 +157,22 @@ const batchDelete = async () => {
 }
 
 const batchDownload = () => {
-  selectedReports.value.forEach(r => { if (r.path) downloadReport(r.path) })
+  selectedReports.value.forEach(r => { if (r.path) downloadReport(r.path, r.record_id, 'docx') })
 }
 
-const downloadReport = async (path) => {
+const downloadReport = async (path, recordId, format = 'docx') => {
   if (!path) return ElMessage.warning('路径为空')
   try {
-    const res = await api.post('/api/v1/reports/download', { path }, { responseType: 'blob' })
-    const url = window.URL.createObjectURL(new Blob([res.data]))
+    const payload = { path, format }
+    if (recordId) payload.record_id = recordId
+    const res = await api.post('/api/v1/reports/download', payload, { responseType: 'blob' })
+    const blob = new Blob([res.data])
+    const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url; a.download = path.split('/').pop()
+    a.href = url
+    const ext = format === 'docx' ? '.docx' : `.${format}`
+    const baseName = path.split('/').pop().replace('.docx', '')
+    a.download = baseName + ext
     document.body.appendChild(a); a.click(); document.body.removeChild(a)
     window.URL.revokeObjectURL(url)
   } catch (e) { ElMessage.error('下载失败') }

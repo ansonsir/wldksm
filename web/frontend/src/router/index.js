@@ -21,6 +21,7 @@ const routes = [
       { path: 'scheduler', name: 'Scheduler', component: () => import('@/views/Scheduler.vue') },
       { path: 'history', name: 'History', component: () => import('@/views/History.vue') },
       { path: 'reports', name: 'Reports', component: () => import('@/views/Reports.vue') },
+      { path: 'assets', name: 'Assets', component: () => import('@/views/Assets.vue') },
       { path: 'templates', name: 'Templates', component: () => import('@/views/Templates.vue') },
       { path: 'settings', name: 'Settings', component: () => import('@/views/Settings.vue') },
     ],

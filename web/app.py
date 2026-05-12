@@ -13,6 +13,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from flask import Flask
 from flask_cors import CORS
 from flask_talisman import Talisman
+from flask_socketio import SocketIO
 
 from web.rate_limit import limiter
 
@@ -60,6 +61,25 @@ def create_app():
     scheduler.scan_service = scan_service
 
     auth_service = AuthService(db_manager=db_manager)
+
+    # --- 初始化 SocketIO ---
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+    app.config['socketio'] = socketio
+
+    # Socket.IO 事件处理
+    @socketio.on('join')
+    def handle_join(data):
+        from flask_socketio import join_room
+        room = data.get('room', '')
+        if room:
+            join_room(room)
+
+    @socketio.on('leave')
+    def handle_leave(data):
+        from flask_socketio import leave_room
+        room = data.get('room', '')
+        if room:
+            leave_room(room)
 
     # --- 将服务实例存入 app.config，供 Blueprint 路由通过 current_app.config 访问 ---
     app.config['project_root'] = PROJECT_ROOT
@@ -207,6 +227,7 @@ if __name__ == '__main__':
     sys.stdout.flush()
 
     try:
-        app.run(host='0.0.0.0', port=5000, debug=False)
+        socketio = app.config['socketio']
+        socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
     finally:
         scheduler.stop()

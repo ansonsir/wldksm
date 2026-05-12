@@ -76,6 +76,7 @@ class ScanExecutor:
                         error_message=str(e)
                     )
                 self._notify_scheduler(task, success=False)
+                self._emit_scan_event(task_id, 'failed', {'message': str(e)})
 
         thread = threading.Thread(target=scan_worker, daemon=True)
         thread.start()
@@ -148,6 +149,14 @@ class ScanExecutor:
             self._send_auto_notification(task, config)
 
         self.task_manager.mark_completed(task['id'])
+
+        # WebSocket 推送完成事件
+        self._emit_scan_event(task['id'], 'completed', {
+            'found_hosts': task.get('found_hosts', 0),
+            'open_ports': task.get('open_ports', 0),
+            'message': task.get('message', ''),
+            'report_file': task.get('report_file', ''),
+        })
 
         # 更新数据库记录
         open_ports_count = sum(len(ports_list) for ports_list in results.values())
@@ -241,6 +250,33 @@ class ScanExecutor:
             task['report_file'] = str(output_path)
             self.db.update_scan_record(record_id, report_file=str(output_path))
 
+            # 生成多格式导出文件 (CSV/JSON/HTML)
+            self._generate_alternate_formats(scan_data, config, output_path)
+
+    def _generate_alternate_formats(self, scan_data, config, output_path):
+        """生成 CSV/JSON/HTML 格式报告"""
+        try:
+            from core.report import (
+                generate_csv_report, generate_json_report, generate_html_report,
+                ReportDataAnalyzer
+            )
+            analyzer = ReportDataAnalyzer()
+            result_file = config.save_result_file
+            if not Path(result_file).is_absolute():
+                result_file = str(Path(config.data_dir) / result_file)
+            if not analyzer.load_scan_results(result_file):
+                return
+            analysis = analyzer.analyze(enable_redarea=False)
+
+            for fn, name in [(generate_csv_report, 'CSV'), (generate_json_report, 'JSON'), (generate_html_report, 'HTML')]:
+                try:
+                    fn(scan_data, analysis, str(output_path))
+                    self.logger.info(f"{name} 格式报告已生成")
+                except Exception as e:
+                    self.logger.warning(f"{name} 格式报告生成失败: {e}")
+        except Exception as e:
+            self.logger.warning(f"多格式报告生成失败: {e}")
+
     def _send_auto_notification(self, task, config):
         """自动发送邮件通知"""
         try:
@@ -288,6 +324,19 @@ class ScanExecutor:
         if scheduled_task_id and self.scheduler:
             task_id = task.get('id', '')
             self.scheduler.on_scan_task_completed(scheduled_task_id, task_id, success=success)
+
+    def _emit_scan_event(self, task_id: str, status: str, extra: dict = None):
+        """通过 WebSocket 推送扫描事件"""
+        try:
+            from flask import current_app
+            socketio = current_app.config.get('socketio') if current_app else None
+            if socketio:
+                payload = {'task_id': task_id, 'status': status}
+                if extra:
+                    payload.update(extra)
+                socketio.emit('scan_status', payload, room=f'scan_{task_id}')
+        except Exception:
+            pass  # WebSocket 推送失败不影响主流程
 
     def stop_task(self, task_id: str) -> bool:
         """停止扫描任务"""

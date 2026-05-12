@@ -703,3 +703,202 @@ def generate_report_with_db(
         db_manager=db_manager,
         record_id=record_id
     )
+
+# ==================== 多格式导出支持 ====================
+
+def _build_export_data(scan_data: Dict[str, Any], analysis_result: Dict[str, Any]) -> Dict[str, Any]:
+    """构建报告导出统一数据结构"""
+    import re
+    report = {
+        'report_date': time.strftime('%Y.%m.%d'),
+        'scan_start_time': scan_data.get('scan_start_time', ''),
+        'scan_end_time': scan_data.get('scan_end_time', ''),
+        'scan_duration': scan_data.get('scan_duration', ''),
+        'ip_range': scan_data.get('ip_range', ''),
+        'ports': scan_data.get('ports', ''),
+        'total_devices': analysis_result.get('total_devices_num', 0),
+        'risk_level': analysis_result.get('risk_level', ''),
+    }
+
+    categories = [
+        ('ftp', 'FTP', 'p_ftp_devices_num', 'p_ftp_devices_info'),
+        ('ssh', 'SSH', 'p_ssh_devices_num', 'p_ssh_devices_info'),
+        ('rdp', 'RDP', 'p_rdp_devices_num', 'p_rdp_devices_info'),
+        ('database', 'Database', 'p_db_devices_num', 'p_db_devices_info'),
+        ('mqtt', 'MQTT', 'p_mqtt_devices_num', 'p_mqtt_devices_info'),
+        ('redarea', 'RedArea', 'p_redArea_devices_num', 'p_redArea_devices_info'),
+    ]
+    report['categories'] = []
+    for key, name, num_key, info_key in categories:
+        num_text = analysis_result.get(num_key, '0')
+        info_text = analysis_result.get(info_key, '')
+        match = re.search(r'(\d+)', str(num_text)) if num_text else None
+        count = int(match.group(1)) if match else 0
+        ips = [line.strip() for line in info_text.strip().split('\n') if line.strip()] if info_text else []
+        report['categories'].append({
+            'key': key, 'name': name, 'count': count, 'ips': ips
+        })
+
+    report['port_distribution'] = analysis_result.get('port_distribution', '')
+    report['high_risk_devices'] = analysis_result.get('high_risk_devices', '')
+    report['security_recommendations'] = analysis_result.get('security_recommendations', '')
+    report['statistics_summary'] = analysis_result.get('statistics_summary', '')
+    return report
+
+
+def generate_csv_report(
+    scan_data: Dict[str, Any],
+    analysis_result: Dict[str, Any],
+    output_file: str,
+    logger: Optional[logging.Logger] = None
+) -> bool:
+    """生成 CSV 格式报告"""
+    import csv
+    if logger is None:
+        logger = logging.getLogger("Report")
+    try:
+        export = _build_export_data(scan_data, analysis_result)
+        csv_file = output_file.replace('.docx', '.csv')
+        with open(csv_file, 'w', encoding='utf-8-sig', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['报告日期', '扫描开始', '扫描结束', '扫描用时', '设备总数', '风险等级'])
+            writer.writerow([
+                export['report_date'], export['scan_start_time'], export['scan_end_time'],
+                export['scan_duration'], export['total_devices'], export['risk_level']
+            ])
+            writer.writerow([])
+            writer.writerow(['类别', '设备数量', '占比(%)', '设备IP列表'])
+            total = export['total_devices'] or 1
+            for cat in export['categories']:
+                pct = round(cat['count'] / total * 100, 1) if total > 0 else 0
+                writer.writerow([cat['name'], cat['count'], pct, '; '.join(cat['ips'][:20])])
+        logger.info(f"CSV 报告已保存: {csv_file}")
+        return True
+    except Exception as e:
+        logger.error(f"生成 CSV 报告失败: {e}")
+        return False
+
+
+def generate_json_report(
+    scan_data: Dict[str, Any],
+    analysis_result: Dict[str, Any],
+    output_file: str,
+    logger: Optional[logging.Logger] = None
+) -> bool:
+    """生成 JSON 格式报告"""
+    if logger is None:
+        logger = logging.getLogger("Report")
+    try:
+        export = _build_export_data(scan_data, analysis_result)
+        json_file = output_file.replace('.docx', '.json')
+        with open(json_file, 'w', encoding='utf-8') as f:
+            json.dump(export, f, ensure_ascii=False, indent=2)
+        logger.info(f"JSON 报告已保存: {json_file}")
+        return True
+    except Exception as e:
+        logger.error(f"生成 JSON 报告失败: {e}")
+        return False
+
+
+def generate_html_report(
+    scan_data: Dict[str, Any],
+    analysis_result: Dict[str, Any],
+    output_file: str,
+    logger: Optional[logging.Logger] = None
+) -> bool:
+    """生成 HTML 格式报告"""
+    if logger is None:
+        logger = logging.getLogger("Report")
+    try:
+        export = _build_export_data(scan_data, analysis_result)
+        html_file = output_file.replace('.docx', '.html')
+
+        total = export['total_devices'] or 1
+
+        cats_html = ''
+        for cat in export['categories']:
+            pct = round(cat['count'] / total * 100, 1) if total > 0 else 0
+            cat_color = '#e6a23c' if cat['count'] > 0 else '#909399'
+            cats_html += f'''
+            <tr>
+                <td>{cat['name']}</td>
+                <td style="color:{cat_color};font-weight:600">{cat['count']}</td>
+                <td>{pct}%</td>
+                <td style="font-size:12px;max-width:400px;word-break:break-all">{
+                    ', '.join(cat['ips'][:15])}{'...' if len(cat['ips']) > 15 else ''}</td>
+            </tr>'''
+
+        risk_colors = {'低风险': '#67c23a', '中风险': '#e6a23c', '高风险': '#f56c6c', '极高风险': '#f56c6c'}
+        risk_color = risk_colors.get(export['risk_level'], '#909399')
+
+        html = f'''<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网络端口扫描报告 - {export['report_date']}</title>
+<style>
+body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 24px; background: #f5f7fa; color: #303133; }}
+.container {{ max-width: 960px; margin: 0 auto; }}
+.header {{ background: linear-gradient(135deg, #409eff, #337ecc); color: #fff; padding: 32px; border-radius: 12px; margin-bottom: 24px; }}
+.header h1 {{ margin: 0 0 8px; font-size: 24px; }}
+.header .meta {{ font-size: 13px; opacity: 0.85; }}
+.card {{ background: #fff; border-radius: 10px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }}
+.card h2 {{ margin: 0 0 16px; font-size: 17px; color: #303133; border-bottom: 2px solid #409eff; padding-bottom: 8px; }}
+.stats-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }}
+.stat-item {{ background: #ecf5ff; border-radius: 8px; padding: 16px; text-align: center; }}
+.stat-value {{ font-size: 28px; font-weight: 700; color: #409eff; }}
+.stat-label {{ font-size: 12px; color: #909399; margin-top: 4px; }}
+table {{ width: 100%; border-collapse: collapse; font-size: 14px; }}
+th, td {{ text-align: left; padding: 10px 12px; border-bottom: 1px solid #ebeef5; }}
+th {{ background: #f5f7fa; font-weight: 600; color: #606266; }}
+.footer {{ text-align: center; color: #c0c4cc; font-size: 12px; margin-top: 32px; padding: 16px; }}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+    <h1>网络端口扫描报告</h1>
+    <div class="meta">报告日期: {export['report_date']} | 扫描时间: {export['scan_start_time']} ~ {export['scan_end_time']} | 用时: {export['scan_duration']}</div>
+</div>
+
+<div class="card">
+    <h2>扫描概览</h2>
+    <div class="stats-grid">
+        <div class="stat-item"><div class="stat-value">{export['total_devices']}</div><div class="stat-label">发现设备</div></div>
+        <div class="stat-item"><div class="stat-value" style="color:{risk_color}">{export['risk_level']}</div><div class="stat-label">风险等级</div></div>
+        <div class="stat-item"><div class="stat-value">{len(export['categories'])}</div><div class="stat-label">服务类别</div></div>
+    </div>
+    <p style="font-size:13px;color:#606266">扫描网段: {export['ip_range']}</p>
+    <p style="font-size:13px;color:#606266">扫描端口: {export['ports']}</p>
+</div>
+
+<div class="card">
+    <h2>分类统计</h2>
+    <table>
+        <thead><tr><th>服务类型</th><th>设备数量</th><th>占比</th><th>受影响设备</th></tr></thead>
+        <tbody>{cats_html}</tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>安全建议</h2>
+    <pre style="white-space:pre-wrap;font-size:13px;line-height:1.8;color:#606266;font-family:inherit;">{export['security_recommendations']}</pre>
+</div>
+
+<div class="card">
+    <h2>统计汇总</h2>
+    <pre style="white-space:pre-wrap;font-size:13px;line-height:1.6;color:#606266;font-family:'Courier New',monospace;">{export['statistics_summary']}</pre>
+</div>
+
+<div class="footer">由 ScanScript 自动生成 | {export['report_date']}</div>
+</div>
+</body>
+</html>'''
+        with open(html_file, 'w', encoding='utf-8') as f:
+            f.write(html)
+        logger.info(f"HTML 报告已保存: {html_file}")
+        return True
+    except Exception as e:
+        logger.error(f"生成 HTML 报告失败: {e}")
+        return False
