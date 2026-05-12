@@ -19,7 +19,7 @@ def _auth_service():
 def _db_manager():
     return current_app.config['db_manager']
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
+auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
 
 
 @auth_bp.route('/captcha', methods=['POST'])

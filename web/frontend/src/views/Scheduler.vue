@@ -177,7 +177,7 @@ const scheduleHint = computed(() => ({ cron: '分 时 日 月 周', interval: '�
 const loadTasks = async () => {
   loading.value = true
   try {
-    const res = await api.get('/api/scheduler/tasks')
+    const res = await api.get('/api/v1/scheduler/tasks')
     if (res.success) tasks.value = res.data
   } catch (e) { ElMessage.error('加载失败') }
   finally { loading.value = false }
@@ -202,8 +202,8 @@ const submitForm = async () => {
   if (!form.schedule_expr) return ElMessage.warning('请输入调度表达式')
   submitting.value = true
   try {
-    if (isEdit.value) { await api.put(`/api/scheduler/tasks/${editingId.value}`, form); ElMessage.success('已更新') }
-    else { await api.post('/api/scheduler/tasks', form); ElMessage.success('已创建') }
+    if (isEdit.value) { await api.put(`/api/v1/scheduler/tasks/${editingId.value}`, form); ElMessage.success('已更新') }
+    else { await api.post('/api/v1/scheduler/tasks', form); ElMessage.success('已创建') }
     dialogVisible.value = false; loadTasks()
   } catch (e) { ElMessage.error(e.response?.data?.message || '操作失败') }
   finally { submitting.value = false }
@@ -211,7 +211,7 @@ const submitForm = async () => {
 
 const toggleTask = async (row) => {
   try {
-    await api.post(`/api/scheduler/tasks/${row.id}/toggle`)
+    await api.post(`/api/v1/scheduler/tasks/${row.id}/toggle`)
     ElMessage.success(row.is_active ? '已启用' : '已禁用')
   } catch (e) { ElMessage.error('操作失败'); row.is_active = !row.is_active }
 }
@@ -219,7 +219,7 @@ const toggleTask = async (row) => {
 const runNow = async (row) => {
   try {
     await ElMessageBox.confirm('确定立即执行？', '提示', { type: 'warning' })
-    const res = await api.post(`/api/scheduler/tasks/${row.id}/run`)
+    const res = await api.post(`/api/v1/scheduler/tasks/${row.id}/run`)
     if (res.success) { ElMessage.success('已开始执行'); loadTasks() }
   } catch (e) { if (e !== 'cancel') ElMessage.error(e.response?.data?.message || '失败') }
 }
@@ -227,7 +227,7 @@ const runNow = async (row) => {
 const stopTask = async (row) => {
   try {
     await ElMessageBox.confirm('确定停止该任务？', '警告', { type: 'error', confirmButtonText: '停止', cancelButtonText: '取消' })
-    await api.post(`/api/scheduler/tasks/${row.id}/stop`)
+    await api.post(`/api/v1/scheduler/tasks/${row.id}/stop`)
     ElMessage.success('已停止'); loadTasks()
   } catch (e) { if (e !== 'cancel') ElMessage.error('停止失败') }
 }
@@ -235,7 +235,7 @@ const stopTask = async (row) => {
 const deleteTask = async (row) => {
   try {
     await ElMessageBox.confirm('确定删除该任务？', '警告', { type: 'warning' })
-    await api.delete(`/api/scheduler/tasks/${row.id}`)
+    await api.delete(`/api/v1/scheduler/tasks/${row.id}`)
     ElMessage.success('已删除'); loadTasks()
   } catch (e) { if (e !== 'cancel') ElMessage.error('删除失败') }
 }

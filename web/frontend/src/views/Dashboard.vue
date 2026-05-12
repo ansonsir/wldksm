@@ -327,9 +327,9 @@ const portChartOption = computed(() => ({
 const loadDashboard = async () => {
   try {
     const [statsRes, historyRes, healthRes] = await Promise.all([
-      api.get('/api/stats'),
-      api.get('/api/scan/history?limit=5'),
-      fetch('/api/system/health').then(r => r.json())
+      api.get('/api/v1/stats'),
+      api.get('/api/v1/scan/history?limit=5'),
+      fetch('/api/v1/system/health').then(r => r.json())
     ])
     if (statsRes.success) stats.value = statsRes.data
     if (historyRes.success) recentRecords.value = historyRes.data

@@ -141,7 +141,7 @@ const formatTime = (s) => {
 
 const loadScanDefaults = async () => {
   try {
-    const res = await api.get('/api/scan/defaults')
+    const res = await api.get('/api/v1/scan/defaults')
     if (res.success) {
       const d = res.data
       if (!scanForm.ip_ranges && d.ip_ranges) scanForm.ip_ranges = d.ip_ranges
@@ -154,7 +154,7 @@ const loadScanDefaults = async () => {
 
 const loadPolicies = async () => {
   try {
-    const res = await api.get('/api/scan/policies')
+    const res = await api.get('/api/v1/scan/policies')
     if (res.success) {
       policies.value = res.data
     }
@@ -175,7 +175,7 @@ const startScan = async () => {
   scanLogs.value = []
 
   try {
-    const res = await api.post('/api/scan/start', {
+    const res = await api.post('/api/v1/scan/start', {
       ip_ranges: scanForm.ip_ranges,
       ports: scanForm.ports,
       exclude_ips: scanForm.exclude_ips,
@@ -200,7 +200,7 @@ const startScan = async () => {
 const stopScan = async () => {
   if (!currentTaskId.value) return
   try {
-    await api.post(`/api/scan/stop/${currentTaskId.value}`)
+    await api.post(`/api/v1/scan/stop/${currentTaskId.value}`)
     ElMessage.info('已发送停止请求')
   } catch (e) {}
 }
@@ -214,7 +214,7 @@ const startStatusPolling = () => {
   const poll = async () => {
     if (!currentTaskId.value) { clearInterval(scanStatusTimer); return }
     try {
-      const res = await api.get(`/api/scan/status/${currentTaskId.value}`)
+      const res = await api.get(`/api/v1/scan/status/${currentTaskId.value}`)
       if (res.success) {
         const d = res.data
         scanProgress.value = Math.round((d.progress / d.total) * 100) || 0
@@ -259,7 +259,7 @@ onMounted(() => {
     currentTaskId.value = saved
     scanning.value = true
     scanMessage.value = '恢复中...'
-    api.get(`/api/scan/status/${saved}`).then(res => {
+    api.get(`/api/v1/scan/status/${saved}`).then(res => {
       if (res.success && res.data.status === 'running') startStatusPolling()
       else { scanning.value = false; scanCompleted.value = res.data?.status === 'completed'; localStorage.removeItem('running_task_id') }
     }).catch(() => { scanning.value = false; localStorage.removeItem('running_task_id') })

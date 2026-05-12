@@ -23,7 +23,7 @@ def index():
     return send_file(str(Path(__file__).parent.parent / 'templates' / 'index.html'))
 
 
-@dashboard_bp.route('/api/stats', methods=['GET'])
+@dashboard_bp.route('/api/v1/stats', methods=['GET'])
 @require_auth
 def get_stats():
     """获取丰富的仪表盘统计信息"""
@@ -157,7 +157,7 @@ def get_stats():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
-@dashboard_bp.route('/api/csp-report', methods=['POST'])
+@dashboard_bp.route('/api/v1/csp-report', methods=['POST'])
 @limiter.limit("30 per minute")
 def csp_report():
     """
@@ -184,7 +184,7 @@ def csp_report():
     return jsonify({'success': True}), 204  # 静默处理，不返回错误
 
 
-@dashboard_bp.route('/api/system/health', methods=['GET'])
+@dashboard_bp.route('/api/v1/system/health', methods=['GET'])
 @limiter.exempt
 def health_check():
     """系统健康检查"""
@@ -232,7 +232,7 @@ def health_check():
 
 # ==================== 资产变更追踪 ====================
 
-@dashboard_bp.route('/api/assets/compare', methods=['POST'])
+@dashboard_bp.route('/api/v1/assets/compare', methods=['POST'])
 @require_auth
 def compare_assets():
     """
@@ -274,7 +274,7 @@ def compare_assets():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
-@dashboard_bp.route('/api/assets/trend', methods=['GET'])
+@dashboard_bp.route('/api/v1/assets/trend', methods=['GET'])
 @require_auth
 def get_asset_trend():
     """获取资产变化趋势数据"""
@@ -287,7 +287,7 @@ def get_asset_trend():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
-@dashboard_bp.route('/api/assets/summary', methods=['GET'])
+@dashboard_bp.route('/api/v1/assets/summary', methods=['GET'])
 @require_auth
 def get_asset_summary():
     """获取资产概览（用于Dashboard）"""

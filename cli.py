@@ -21,7 +21,7 @@ from core.utils import setup_logging, load_text_file, load_ip_ranges
 def create_argument_parser() -> argparse.ArgumentParser:
     """创建命令行参数解析器"""
     parser = argparse.ArgumentParser(
-        description="网络端口扫描工具 v3.0",
+        description="网络端口扫描工具 v4.0",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
@@ -104,7 +104,7 @@ def print_banner():
     """打印程序横幅"""
     banner = """
 ╔═══════════════════════════════════════════════════════════╗
-║              网络端口扫描工具 v3.0                        ║
+║              网络端口扫描工具 v4.0                        ║
 ║                                                           ║
 ║  支持模式:                                                ║
 ║    - normal:  普通区域扫描（指定端口）                    ║

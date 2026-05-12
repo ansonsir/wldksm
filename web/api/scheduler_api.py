@@ -9,7 +9,7 @@ from web.middleware.auth_middleware import require_auth, require_csrf
 logger = logging.getLogger(__name__)
 
 # 蓝图将在 app.py 中创建并传入 scheduler 实例
-scheduler_bp = Blueprint('scheduler', __name__)
+scheduler_bp = Blueprint('scheduler', __name__, url_prefix='/api/v1')
 
 # scheduler 实例将在 app.py 中设置
 scheduler = None
@@ -21,7 +21,7 @@ def init_scheduler_api(scheduler_instance):
     scheduler = scheduler_instance
 
 
-@scheduler_bp.route('/api/scheduler/tasks', methods=['GET'])
+@scheduler_bp.route('/scheduler/tasks', methods=['GET'])
 @require_auth
 def get_tasks():
     """获取所有定时任务"""
@@ -65,7 +65,7 @@ def get_tasks():
         }), 500
 
 
-@scheduler_bp.route('/api/scheduler/tasks', methods=['POST'])
+@scheduler_bp.route('/scheduler/tasks', methods=['POST'])
 @require_auth
 @require_csrf
 def create_task():
@@ -135,7 +135,7 @@ def create_task():
         }), 500
 
 
-@scheduler_bp.route('/api/scheduler/tasks/<int:task_id>', methods=['PUT'])
+@scheduler_bp.route('/scheduler/tasks/<int:task_id>', methods=['PUT'])
 @require_auth
 @require_csrf
 def update_task(task_id):
@@ -190,7 +190,7 @@ def update_task(task_id):
         }), 500
 
 
-@scheduler_bp.route('/api/scheduler/tasks/<int:task_id>', methods=['DELETE'])
+@scheduler_bp.route('/scheduler/tasks/<int:task_id>', methods=['DELETE'])
 @require_auth
 @require_csrf
 def delete_task(task_id):
@@ -226,7 +226,7 @@ def delete_task(task_id):
         }), 500
 
 
-@scheduler_bp.route('/api/scheduler/tasks/<int:task_id>/toggle', methods=['POST'])
+@scheduler_bp.route('/scheduler/tasks/<int:task_id>/toggle', methods=['POST'])
 @require_auth
 @require_csrf
 def toggle_task(task_id):
@@ -263,7 +263,7 @@ def toggle_task(task_id):
         }), 500
 
 
-@scheduler_bp.route('/api/scheduler/tasks/<int:task_id>/run', methods=['POST'])
+@scheduler_bp.route('/scheduler/tasks/<int:task_id>/run', methods=['POST'])
 @require_auth
 @require_csrf
 def run_now(task_id):
@@ -300,7 +300,7 @@ def run_now(task_id):
         }), 500
 
 
-@scheduler_bp.route('/api/scheduler/tasks/<int:task_id>/stop', methods=['POST'])
+@scheduler_bp.route('/scheduler/tasks/<int:task_id>/stop', methods=['POST'])
 @require_auth
 @require_csrf
 def stop_task(task_id):

@@ -83,6 +83,13 @@
         </div>
 
         <div class="header-right">
+          <!-- 暗色模式切换 -->
+          <el-tooltip :content="appStore.darkMode ? '切换亮色模式' : '切换暗色模式'" placement="bottom">
+            <div class="theme-toggle" @click="appStore.toggleDarkMode">
+              <el-icon size="18"><Sunny v-if="appStore.darkMode" /><Moon v-else /></el-icon>
+            </div>
+          </el-tooltip>
+
           <!-- 健康状态 -->
           <el-tooltip :content="`系统状态: ${statusLabel}`" placement="bottom">
             <div class="health-indicator">
@@ -135,7 +142,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
 import { ElMessageBox } from 'element-plus'
-import { Fold, Expand, Monitor, Location } from '@element-plus/icons-vue'
+import { Fold, Expand, Monitor, Location, Sunny, Moon } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -376,7 +383,7 @@ const handleCommand = async (command) => {
   transition: background var(--transition-fast);
 }
 .health-indicator:hover {
-  background: #f5f7fa;
+  background: var(--el-fill-color-light, #f5f7fa);
 }
 .pulse-dot {
   width: 10px;
@@ -402,6 +409,24 @@ const handleCommand = async (command) => {
   100% { transform: scale(2.2); opacity: 0; }
 }
 
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--neutral-text-light);
+  transition: all var(--transition-fast);
+}
+.theme-toggle:hover {
+  background: var(--el-fill-color-light, #f5f7fa);
+  color: var(--brand-primary);
+}
+html.dark .theme-toggle:hover {
+  background: var(--el-fill-color, #2a2a3c);
+}
 .user-menu-trigger {
   display: flex;
   align-items: center;
@@ -412,7 +437,7 @@ const handleCommand = async (command) => {
   transition: background var(--transition-fast);
 }
 .user-menu-trigger:hover {
-  background: #f5f7fa;
+  background: var(--el-fill-color-light, #f5f7fa);
 }
 .user-name {
   font-size: 14px;

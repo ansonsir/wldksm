@@ -267,7 +267,7 @@ const totpRules = {
 // 获取验证码
 const refreshCaptcha = async () => {
   try {
-    const response = await axios.post('/api/auth/captcha')
+    const response = await axios.post('/api/v1/auth/captcha')
     if (response.data.success) {
       captchaImage.value = response.data.data.captcha_image
       loginForm.captcha_id = response.data.data.captcha_id
@@ -286,16 +286,10 @@ const handleLogin = async () => {
     
     loading.value = true
     try {
-      const response = await axios.post('/api/auth/login', loginForm)
+      const response = await axios.post('/api/v1/auth/login', loginForm)
       
       if (response.data.success) {
         const data = response.data.data
-        
-        // 调试日志
-        console.log('登录返回数据:', data)
-        console.log('need_totp:', data.need_totp)
-        console.log('need_totp_setup:', data.need_totp_setup)
-        console.log('user_info:', data.user_info)
         
         if (data.need_totp) {
           // 需要TOTP验证（已启用TOTP的用户）
@@ -373,7 +367,7 @@ const handleTotpLogin = async () => {
     
     loading.value = true
     try {
-      const response = await axios.post('/api/auth/login/totp', {
+      const response = await axios.post('/api/v1/auth/login/totp', {
         totp_token: totpForm.totp_token,
         totp_session_token: sessionStorage.getItem('totp_session_token') || ''
       })
@@ -447,7 +441,7 @@ const handleChangePassword = async () => {
     
     changingPassword.value = true
     try {
-      const response = await axios.post('/api/auth/change-password', {
+      const response = await axios.post('/api/v1/auth/change-password', {
         old_password: '',  // 首次登录不需要旧密码
         new_password: changePasswordForm.new_password,
         first_login: true  // 标记首次登录

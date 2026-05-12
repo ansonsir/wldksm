@@ -9,16 +9,29 @@
     <el-card>
       <!-- 工具栏 -->
       <div class="action-bar">
-        <el-input v-model="searchKeyword" placeholder="搜索IP地址..." size="small" style="width:220px" clearable @input="filterData">
+        <el-input v-model="searchKeyword" placeholder="搜索IP/报告..." size="small" style="width:220px" clearable @input="filterData">
           <template #prefix><el-icon><Search /></el-icon></template>
         </el-input>
-        <el-select v-model="statusFilter" placeholder="状态筛选" size="small" style="width:140px" clearable @change="filterData">
+        <el-select v-model="statusFilter" placeholder="状态筛选" size="small" style="width:120px" clearable @change="filterData">
           <el-option label="全部" value="" />
           <el-option label="已完成" value="completed" />
           <el-option label="运行中" value="running" />
           <el-option label="失败" value="failed" />
           <el-option label="已取消" value="cancelled" />
         </el-select>
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          size="small"
+          style="width:240px"
+          format="YYYY-MM-DD"
+          value-format="YYYY-MM-DD"
+          @change="filterData"
+        />
+        <el-button size="small" @click="clearFilters" :disabled="!searchKeyword && !statusFilter && !dateRange">清除筛选</el-button>
         <div style="flex:1"></div>
         <template v-if="selectedRecords.length > 0">
           <el-tag type="info" size="small">已选 {{ selectedRecords.length }} 项</el-tag>
@@ -158,6 +171,7 @@ const allRecords = ref([])
 const selectedRecords = ref([])
 const searchKeyword = ref('')
 const statusFilter = ref('')
+const dateRange = ref(null)
 const currentPage = ref(1)
 const pageSize = ref(20)
 const detailVisible = ref(false)
@@ -176,10 +190,23 @@ const formatTime = (s) => {
 const filteredRecords = computed(() => {
   let data = allRecords.value
   if (searchKeyword.value) {
-    data = data.filter(r => r.ip_ranges?.toLowerCase().includes(searchKeyword.value.toLowerCase()))
+    const kw = searchKeyword.value.toLowerCase()
+    data = data.filter(r =>
+      (r.ip_ranges?.toLowerCase().includes(kw)) ||
+      (r.report_file?.toLowerCase().includes(kw)) ||
+      (String(r.id).includes(kw))
+    )
   }
   if (statusFilter.value) {
     data = data.filter(r => r.status === statusFilter.value)
+  }
+  if (dateRange.value && dateRange.value.length === 2) {
+    const [start, end] = dateRange.value
+    data = data.filter(r => {
+      if (!r.start_time) return false
+      const recordDate = r.start_time.substring(0, 10)
+      return recordDate >= start && recordDate <= end
+    })
   }
   return data
 })
@@ -193,9 +220,16 @@ const filterData = () => {
   currentPage.value = 1
 }
 
+const clearFilters = () => {
+  searchKeyword.value = ''
+  statusFilter.value = ''
+  dateRange.value = null
+  currentPage.value = 1
+}
+
 const loadHistory = async () => {
   try {
-    const res = await api.get('/api/scan/history?limit=200')
+    const res = await api.get('/api/v1/scan/history?limit=200')
     if (res.success) allRecords.value = res.data
   } catch (e) {}
 }
@@ -205,7 +239,7 @@ const handleSelectionChange = (sel) => { selectedRecords.value = sel }
 const deleteRecord = async (row) => {
   try {
     await ElMessageBox.confirm(`确定删除扫描记录 #${row.id}？`, '确认删除', { type: 'warning' })
-    const res = await api.post('/api/scan/history/delete', { ids: [row.id] })
+    const res = await api.post('/api/v1/scan/history/delete', { ids: [row.id] })
     if (res.success) { ElMessage.success('已删除'); loadHistory() }
     else { ElMessage.error(res.message || '删除失败') }
   } catch (e) { if (e !== 'cancel') ElMessage.error('删除失败') }
@@ -215,7 +249,7 @@ const batchDelete = async () => {
   if (!selectedRecords.value.length) return
   try {
     await ElMessageBox.confirm(`确定删除 ${selectedRecords.value.length} 条记录？`, '批量删除', { type: 'warning' })
-    const res = await api.post('/api/scan/history/delete', { ids: selectedRecords.value.map(r => r.id) })
+    const res = await api.post('/api/v1/scan/history/delete', { ids: selectedRecords.value.map(r => r.id) })
     if (res.success) { ElMessage.success('批量删除成功'); selectedRecords.value = []; loadHistory() }
     else { ElMessage.error(res.message || '删除失败') }
   } catch (e) { if (e !== 'cancel') ElMessage.error('删除失败') }
@@ -227,7 +261,7 @@ const batchDownload = () => {
 
 const viewDetail = async (row) => {
   try {
-    const res = await api.get(`/api/scan/history/${row.id}`)
+    const res = await api.get(`/api/v1/scan/history/${row.id}`)
     if (res.success) {
       detail.value = res.data
       detailVisible.value = true
@@ -240,7 +274,7 @@ const startDetailPolling = (taskId) => {
   if (detailTimer) clearInterval(detailTimer)
   detailTimer = setInterval(async () => {
     try {
-      const res = await api.get(`/api/scan/status/${taskId}`)
+      const res = await api.get(`/api/v1/scan/status/${taskId}`)
       if (res.success && detail.value) {
         const d = res.data
         Object.assign(detail.value, {
@@ -262,7 +296,7 @@ const handleDetailClose = () => {
 const downloadReport = async (path) => {
   if (!path) return ElMessage.warning('路径为空')
   try {
-    const res = await api.post('/api/reports/download', { path }, { responseType: 'blob' })
+    const res = await api.post('/api/v1/reports/download', { path }, { responseType: 'blob' })
     const url = window.URL.createObjectURL(new Blob([res.data]))
     const a = document.createElement('a')
     a.href = url; a.download = path.split('/').pop()

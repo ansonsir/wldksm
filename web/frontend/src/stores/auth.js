@@ -33,7 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout(router) {
     try {
-      await api.post('/api/auth/logout')
+      await api.post('/api/v1/auth/logout')
     } catch (e) {}
     clearAuth()
     ElMessage.success('已退出登录')

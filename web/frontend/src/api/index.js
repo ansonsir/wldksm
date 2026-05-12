@@ -62,7 +62,7 @@ async function fetchCsrfToken() {
   try {
     const token = secureGetItem('auth_token')
     if (!token) return false
-    const response = await axios.get('/api/auth/csrf-token', {
+    const response = await axios.get('/api/v1/auth/csrf-token', {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (response.data?.success && response.data?.data?.csrf_token) {
@@ -116,7 +116,7 @@ api.interceptors.response.use(
     // 处理401错误（未认证）
     if (error.response?.status === 401) {
       // 如果是刷新token的请求失败，直接跳转登录
-      if (originalRequest.url === '/api/auth/refresh') {
+      if (originalRequest.url === '/api/v1/auth/refresh') {
         localStorage.removeItem('auth_token')
         localStorage.removeItem('refresh_token')
         localStorage.removeItem('user_info')
@@ -134,7 +134,7 @@ api.interceptors.response.use(
           throw new Error('No refresh token')
         }
         
-        const refreshResponse = await axios.post('/api/auth/refresh', {
+        const refreshResponse = await axios.post('/api/v1/auth/refresh', {
           refresh_token: refreshToken
         })
         

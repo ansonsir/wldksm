@@ -125,7 +125,7 @@ const rules = {
 // 初始化TOTP设置
 const initTotpSetup = async () => {
   try {
-    const response = await api.post('/api/auth/setup-totp')
+    const response = await api.post('/api/v1/auth/setup-totp')
     if (response.success) {
       qrCode.value = response.data.qr_code
       secretKey.value = response.data.secret
@@ -144,7 +144,7 @@ const handleVerify = async () => {
 
     loading.value = true
     try {
-      const response = await api.post('/api/auth/verify-totp-setup', {
+      const response = await api.post('/api/v1/auth/verify-totp-setup', {
         totp_token: form.totp_token
       })
 

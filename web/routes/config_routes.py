@@ -10,7 +10,7 @@ from web.mail_service import MailConfig
 logger = logging.getLogger(__name__)
 
 
-config_bp = Blueprint('config', __name__)
+config_bp = Blueprint('config', __name__, url_prefix='/api/v1')
 
 
 def _get_services():
@@ -22,7 +22,7 @@ def _get_services():
     )
 
 
-@config_bp.route('/api/config', methods=['GET'])
+@config_bp.route('/config', methods=['GET'])
 @require_auth
 def get_config():
     """获取当前配置"""
@@ -53,7 +53,7 @@ def get_config():
         return jsonify({'success': False, 'message': '获取配置失败，请稍后重试'}), 500
 
 
-@config_bp.route('/api/config', methods=['POST'])
+@config_bp.route('/config', methods=['POST'])
 @require_auth
 @require_csrf
 def update_config():
@@ -108,7 +108,7 @@ def update_config():
         return jsonify({'success': False, 'message': '更新配置失败，请稍后重试'}), 500
 
 
-@config_bp.route('/api/scan/defaults', methods=['GET'])
+@config_bp.route('/scan/defaults', methods=['GET'])
 @require_auth
 def get_scan_defaults():
     """获取扫描默认参数（从系统配置文件读取）"""
@@ -155,7 +155,7 @@ def get_scan_defaults():
         return jsonify({'success': False, 'message': '获取扫描默认参数失败，请稍后重试'}), 500
 
 
-@config_bp.route('/api/scan/areas', methods=['GET'])
+@config_bp.route('/scan/areas', methods=['GET'])
 @require_auth
 def get_scan_areas():
     """获取扫描区域列表"""
@@ -180,7 +180,7 @@ def get_scan_areas():
         return jsonify({'success': False, 'message': '获取扫描区域失败，请稍后重试'}), 500
 
 
-@config_bp.route('/api/mail/config', methods=['GET'])
+@config_bp.route('/mail/config', methods=['GET'])
 @require_auth
 def get_mail_config():
     """获取邮件配置"""
@@ -208,7 +208,7 @@ def get_mail_config():
         return jsonify({'success': False, 'message': '获取邮件配置失败，请稍后重试'}), 500
 
 
-@config_bp.route('/api/mail/config', methods=['POST'])
+@config_bp.route('/mail/config', methods=['POST'])
 @require_auth
 @require_csrf
 def save_mail_config():
@@ -244,7 +244,7 @@ def save_mail_config():
         return jsonify({'success': False, 'message': '保存邮件配置失败，请稍后重试'}), 500
 
 
-@config_bp.route('/api/mail/test', methods=['POST'])
+@config_bp.route('/mail/test', methods=['POST'])
 @require_auth
 @require_csrf
 def test_mail():
@@ -269,7 +269,7 @@ def test_mail():
 
 # ==================== Webhook 配置 ====================
 
-@config_bp.route('/api/webhook/configs', methods=['GET'])
+@config_bp.route('/webhook/configs', methods=['GET'])
 @require_auth
 def get_webhook_configs():
     """获取所有 Webhook 配置"""
@@ -282,7 +282,7 @@ def get_webhook_configs():
         return jsonify({'success': False, 'message': '获取Webhook配置失败，请稍后重试'}), 500
 
 
-@config_bp.route('/api/webhook/configs', methods=['POST'])
+@config_bp.route('/webhook/configs', methods=['POST'])
 @require_auth
 @require_csrf
 def save_webhook_config():
@@ -314,7 +314,7 @@ def save_webhook_config():
         return jsonify({'success': False, 'message': '保存Webhook配置失败，请稍后重试'}), 500
 
 
-@config_bp.route('/api/webhook/configs/<platform>', methods=['DELETE'])
+@config_bp.route('/webhook/configs/<platform>', methods=['DELETE'])
 @require_auth
 @require_csrf
 def delete_webhook_config(platform):
@@ -330,7 +330,7 @@ def delete_webhook_config(platform):
         return jsonify({'success': False, 'message': '删除Webhook配置失败，请稍后重试'}), 500
 
 
-@config_bp.route('/api/webhook/test', methods=['POST'])
+@config_bp.route('/webhook/test', methods=['POST'])
 @require_auth
 @require_csrf
 def test_webhook():
@@ -420,7 +420,7 @@ SCAN_POLICIES = {
 }
 
 
-@config_bp.route('/api/scan/policies', methods=['GET'])
+@config_bp.route('/scan/policies', methods=['GET'])
 @require_auth
 def get_scan_policies():
     """获取扫描策略模板列表"""

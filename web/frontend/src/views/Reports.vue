@@ -118,7 +118,7 @@ const filterData = () => { currentPage.value = 1 }
 
 const loadReports = async () => {
   try {
-    const res = await api.get('/api/reports')
+    const res = await api.get('/api/v1/reports')
     if (res.success) allReports.value = res.data || []
   } catch (e) {}
 }
@@ -128,7 +128,7 @@ const handleSelectionChange = (sel) => { selectedReports.value = sel }
 const deleteReport = async (row) => {
   try {
     await ElMessageBox.confirm(`确定删除 "${row.name}"？`, '确认', { type: 'warning' })
-    const res = await api.post('/api/reports/delete', { paths: [row.path] })
+    const res = await api.post('/api/v1/reports/delete', { paths: [row.path] })
     if (res.success) { ElMessage.success('已删除'); loadReports() }
     else { ElMessage.error(res.message || '失败') }
   } catch (e) { if (e !== 'cancel') ElMessage.error('删除失败') }
@@ -138,7 +138,7 @@ const batchDelete = async () => {
   if (!selectedReports.value.length) return
   try {
     await ElMessageBox.confirm(`确定删除 ${selectedReports.value.length} 个报告？`, '确认', { type: 'warning' })
-    const res = await api.post('/api/reports/delete', { paths: selectedReports.value.map(r => r.path) })
+    const res = await api.post('/api/v1/reports/delete', { paths: selectedReports.value.map(r => r.path) })
     if (res.success) { ElMessage.success('批量删除成功'); selectedReports.value = []; loadReports() }
     else { ElMessage.error(res.message || '失败') }
   } catch (e) { if (e !== 'cancel') ElMessage.error('删除失败') }
@@ -151,7 +151,7 @@ const batchDownload = () => {
 const downloadReport = async (path) => {
   if (!path) return ElMessage.warning('路径为空')
   try {
-    const res = await api.post('/api/reports/download', { path }, { responseType: 'blob' })
+    const res = await api.post('/api/v1/reports/download', { path }, { responseType: 'blob' })
     const url = window.URL.createObjectURL(new Blob([res.data]))
     const a = document.createElement('a')
     a.href = url; a.download = path.split('/').pop()
@@ -163,7 +163,7 @@ const downloadReport = async (path) => {
 const openSendMail = async (report) => {
   selectedReport.value = report
   try {
-    const res = await api.get('/api/mail/config')
+    const res = await api.get('/api/v1/mail/config')
     const def = res.success ? (res.data?.default_recipients || '') : ''
     mailForm.value = {
       recipients: def,
@@ -180,7 +180,7 @@ const sendMail = async () => {
   if (!mailForm.value.recipients.trim()) return ElMessage.warning('请输入收件人')
   sending.value = true
   try {
-    const res = await api.post('/api/reports/send', {
+    const res = await api.post('/api/v1/reports/send', {
       report_path: selectedReport.value.path,
       recipients: mailForm.value.recipients,
       subject: mailForm.value.subject,

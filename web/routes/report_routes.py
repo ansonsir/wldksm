@@ -11,7 +11,7 @@ from core.template_manager import TemplateManager
 
 logger = logging.getLogger(__name__)
 
-report_bp = Blueprint('report', __name__)
+report_bp = Blueprint('report', __name__, url_prefix='/api/v1')
 
 
 def _get_services():
@@ -28,7 +28,7 @@ def _get_project_root():
 
 # ==================== 报告管理 ====================
 
-@report_bp.route('/api/reports', methods=['GET'])
+@report_bp.route('/reports', methods=['GET'])
 @require_auth
 def get_reports():
     """获取报告列表"""
@@ -95,7 +95,7 @@ def get_reports():
         return jsonify({'success': False, 'message': '获取报告列表失败，请稍后重试'}), 500
 
 
-@report_bp.route('/api/reports/download', methods=['POST'])
+@report_bp.route('/reports/download', methods=['POST'])
 @require_auth
 @require_csrf
 def download_report():
@@ -130,7 +130,7 @@ def download_report():
         return jsonify({'success': False, 'message': '下载报告失败，请稍后重试'}), 500
 
 
-@report_bp.route('/api/reports/delete', methods=['POST'])
+@report_bp.route('/reports/delete', methods=['POST'])
 @require_auth
 @require_csrf
 def delete_reports():
@@ -179,7 +179,7 @@ def delete_reports():
         return jsonify({'success': False, 'message': '删除报告失败，请稍后重试'}), 500
 
 
-@report_bp.route('/api/reports/send', methods=['POST'])
+@report_bp.route('/reports/send', methods=['POST'])
 @require_auth
 @require_csrf
 def send_report_mail():
@@ -213,7 +213,7 @@ def send_report_mail():
 
 # ==================== 模板管理 ====================
 
-@report_bp.route('/api/templates', methods=['GET'])
+@report_bp.route('/templates', methods=['GET'])
 @require_auth
 def get_templates():
     """获取模板列表"""
@@ -227,7 +227,7 @@ def get_templates():
         return jsonify({'success': False, 'message': '获取模板列表失败，请稍后重试'}), 500
 
 
-@report_bp.route('/api/templates/upload', methods=['POST'])
+@report_bp.route('/templates/upload', methods=['POST'])
 @require_auth
 @require_csrf
 def upload_template():
@@ -280,7 +280,7 @@ def upload_template():
         return jsonify({'success': False, 'message': '上传模板失败，请稍后重试'}), 500
 
 
-@report_bp.route('/api/templates/delete', methods=['POST'])
+@report_bp.route('/templates/delete', methods=['POST'])
 @require_auth
 @require_csrf
 def delete_template():
@@ -315,7 +315,7 @@ def delete_template():
         return jsonify({'success': False, 'message': '删除模板失败，请稍后重试'}), 500
 
 
-@report_bp.route('/api/templates/preview', methods=['POST'])
+@report_bp.route('/templates/preview', methods=['POST'])
 @require_auth
 @require_csrf
 def preview_template():

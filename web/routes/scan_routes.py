@@ -12,7 +12,7 @@ from core.database import ScanResultDetail
 
 logger = logging.getLogger(__name__)
 
-scan_bp = Blueprint('scan', __name__)
+scan_bp = Blueprint('scan', __name__, url_prefix='/api/v1')
 
 
 def _get_services():
@@ -28,7 +28,7 @@ def _get_project_root():
     return current_app.config['project_root']
 
 
-@scan_bp.route('/api/scan/start', methods=['POST'])
+@scan_bp.route('/scan/start', methods=['POST'])
 @require_auth
 @require_csrf
 def start_scan():
@@ -71,7 +71,7 @@ def start_scan():
         return error_response(message='启动扫描任务失败，请稍后重试', code=500)
 
 
-@scan_bp.route('/api/scan/stop/<task_id>', methods=['POST'])
+@scan_bp.route('/scan/stop/<task_id>', methods=['POST'])
 @require_auth
 @require_csrf
 def stop_scan(task_id):
@@ -82,7 +82,7 @@ def stop_scan(task_id):
     return error_response(message='任务不存在', code=404)
 
 
-@scan_bp.route('/api/scan/status/<task_id>', methods=['GET'])
+@scan_bp.route('/scan/status/<task_id>', methods=['GET'])
 @require_auth
 def get_scan_status(task_id):
     """获取扫描任务状态"""
@@ -93,7 +93,7 @@ def get_scan_status(task_id):
     return error_response(message='任务不存在', code=404)
 
 
-@scan_bp.route('/api/scan/history', methods=['GET'])
+@scan_bp.route('/scan/history', methods=['GET'])
 @require_auth
 def get_scan_history():
     """获取扫描历史"""
@@ -146,7 +146,7 @@ def get_scan_history():
         return jsonify({'success': False, 'message': '获取扫描历史失败，请稍后重试'}), 500
 
 
-@scan_bp.route('/api/scan/history/<int:record_id>', methods=['GET'])
+@scan_bp.route('/scan/history/<int:record_id>', methods=['GET'])
 @require_auth
 def get_scan_detail(record_id):
     """获取扫描详情"""
@@ -220,7 +220,7 @@ def get_scan_detail(record_id):
         return jsonify({'success': False, 'message': '获取扫描详情失败，请稍后重试'}), 500
 
 
-@scan_bp.route('/api/scan/history/delete', methods=['POST'])
+@scan_bp.route('/scan/history/delete', methods=['POST'])
 @require_auth
 @require_csrf
 def delete_scan_history():

@@ -8,7 +8,7 @@
           <div class="upload-section">
             <el-upload
               drag
-              action="/api/templates/upload"
+              action="/api/v1/templates/upload"
               :on-success="handleUploadSuccess"
               :on-error="handleUploadError"
               accept=".docx"
@@ -74,14 +74,14 @@ const previewData = ref(null)
 
 const loadTemplates = async () => {
   try {
-    const res = await api.get('/api/templates')
+    const res = await api.get('/api/v1/templates')
     if (res.success) templates.value = res.data
   } catch (e) {}
 }
 
 const previewTemplate = async (row) => {
   try {
-    const res = await api.post('/api/templates/preview', { path: row.path })
+    const res = await api.post('/api/v1/templates/preview', { path: row.path })
     if (res.success) { previewData.value = res.data; previewVisible.value = true }
     else { ElMessage.error(res.message || '预览失败') }
   } catch (e) { ElMessage.error('预览失败') }
@@ -90,7 +90,7 @@ const previewTemplate = async (row) => {
 const deleteTemplate = async (row) => {
   try {
     await ElMessageBox.confirm(`确定删除 "${row.name}"？`, '确认', { type: 'warning' })
-    const res = await api.post('/api/templates/delete', { id: row.id, path: row.path })
+    const res = await api.post('/api/v1/templates/delete', { id: row.id, path: row.path })
     if (res.success) { ElMessage.success('已删除'); loadTemplates() }
     else { ElMessage.error(res.message || '失败') }
   } catch (e) { if (e !== 'cancel') ElMessage.error('删除失败') }

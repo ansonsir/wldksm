@@ -16573,3 +16573,348 @@ ImportError: cannot import name 'auth_service' from 'web.app' (/home/yinsongkai/
 2026-05-12 09:57:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:57:43] "GET /api/system/health HTTP/1.1" 200 -
 2026-05-12 09:58:02 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:58:02] "GET /api/system/health HTTP/1.1" 200 -
 2026-05-12 09:58:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:58:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 09:59:03 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:03] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 09:59:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:28] "[36mGET / HTTP/1.1[0m" 304 -
+2026-05-12 09:59:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:28] "[36mGET /assets/index-CIrDmTrC.js HTTP/1.1[0m" 304 -
+2026-05-12 09:59:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:28] "[36mGET /assets/index-BHxruDvf.css HTTP/1.1[0m" 304 -
+2026-05-12 09:59:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:28] "[36mGET /assets/Settings-7UjHETej.js HTTP/1.1[0m" 304 -
+2026-05-12 09:59:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:28] "[36mGET /assets/PageHeader-BA-50YNQ.css HTTP/1.1[0m" 304 -
+2026-05-12 09:59:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:28] "[36mGET /assets/TOTPSetup-wI6MDLUS.css HTTP/1.1[0m" 304 -
+2026-05-12 09:59:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:28] "[36mGET /assets/Settings-HBwdyaZk.css HTTP/1.1[0m" 304 -
+2026-05-12 09:59:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:28] "[36mGET /assets/PageHeader-CF5Ofsey.js HTTP/1.1[0m" 304 -
+2026-05-12 09:59:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:28] "[36mGET /assets/TOTPSetup-DQS1vgOF.js HTTP/1.1[0m" 304 -
+2026-05-12 09:59:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:28] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 09:59:29 - AuthService - WARNING - Token已过期
+2026-05-12 09:59:29 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:29] "[31m[1mGET /api/config HTTP/1.1[0m" 401 -
+2026-05-12 09:59:29 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:29] "POST /api/auth/refresh HTTP/1.1" 200 -
+2026-05-12 09:59:29 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:29] "GET /api/config HTTP/1.1" 200 -
+2026-05-12 09:59:29 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:29] "GET /api/mail/config HTTP/1.1" 200 -
+2026-05-12 09:59:29 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:29] "GET /api/webhook/configs HTTP/1.1" 200 -
+2026-05-12 09:59:29 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:29] "GET /api/auth/users HTTP/1.1" 200 -
+2026-05-12 09:59:32 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:32] "GET /assets/Login-CYYzYFKH.js HTTP/1.1" 200 -
+2026-05-12 09:59:32 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:32] "GET /assets/Login-Cc3URsmp.css HTTP/1.1" 200 -
+2026-05-12 09:59:32 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:32] "POST /api/auth/captcha HTTP/1.1" 200 -
+2026-05-12 09:59:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 09:59:53 - AuthService - WARNING - 密码错误: admin
+2026-05-12 09:59:53 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:53] "[31m[1mPOST /api/auth/login HTTP/1.1[0m" 401 -
+2026-05-12 09:59:53 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 09:59:53] "POST /api/auth/captcha HTTP/1.1" 200 -
+2026-05-12 10:00:09 - AuthService - INFO - 需要TOTP验证: admin
+2026-05-12 10:00:09 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:09] "POST /api/auth/login HTTP/1.1" 200 -
+2026-05-12 10:00:23 - AuthService - INFO - 用户登录成功: admin
+2026-05-12 10:00:23 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:23] "POST /api/auth/login/totp HTTP/1.1" 200 -
+2026-05-12 10:00:23 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:23] "GET /api/auth/csrf-token HTTP/1.1" 200 -
+2026-05-12 10:00:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:24] "GET /assets/Dashboard-kG_Pd0NV.js HTTP/1.1" 200 -
+2026-05-12 10:00:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:24] "GET /assets/Dashboard-CrCTN8nG.css HTTP/1.1" 200 -
+2026-05-12 10:00:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:24] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:00:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:24] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:00:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:24] "GET /api/scan/history?limit=5 HTTP/1.1" 200 -
+2026-05-12 10:00:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:24] "GET /api/stats HTTP/1.1" 200 -
+2026-05-12 10:00:27 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:27] "GET /api/config HTTP/1.1" 200 -
+2026-05-12 10:00:27 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:27] "GET /api/mail/config HTTP/1.1" 200 -
+2026-05-12 10:00:27 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:27] "GET /api/webhook/configs HTTP/1.1" 200 -
+2026-05-12 10:00:27 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:27] "GET /api/auth/users HTTP/1.1" 200 -
+2026-05-12 10:00:27 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:27] "GET /assets/Scan-LarVBJxS.css HTTP/1.1" 200 -
+2026-05-12 10:00:27 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:27] "GET /assets/Scan-BAytIzIi.js HTTP/1.1" 200 -
+2026-05-12 10:00:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:28] "GET /api/scan/policies HTTP/1.1" 200 -
+2026-05-12 10:00:28 - API - INFO - 成功从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/ip_ranges.txt 加载 69888 个IP范围
+2026-05-12 10:00:28 - API - INFO - 成功从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/redarea.txt 加载 38 个IP范围
+2026-05-12 10:00:28 - API - INFO - 总共加载 69926 个IP范围（从 2 个文件）
+2026-05-12 10:00:28 - API - INFO - 从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/ports.txt 加载了 37 条端口
+2026-05-12 10:00:28 - API - INFO - 从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/excludes.txt 加载了 428 条排除IP
+2026-05-12 10:00:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:28] "GET /api/scan/defaults HTTP/1.1" 200 -
+2026-05-12 10:00:32 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:32] "GET /assets/Scheduler-NW0zGFKj.js HTTP/1.1" 200 -
+2026-05-12 10:00:32 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:32] "GET /assets/Scheduler-yhwFxm_l.css HTTP/1.1" 200 -
+2026-05-12 10:00:33 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:33] "GET /api/scheduler/tasks HTTP/1.1" 200 -
+2026-05-12 10:00:42 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:00:42] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:01:05 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:01:05] "[36mGET /assets/Scheduler-NW0zGFKj.js HTTP/1.1[0m" 304 -
+2026-05-12 10:01:05 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:01:05] "[36mGET /assets/Scheduler-yhwFxm_l.css HTTP/1.1[0m" 304 -
+2026-05-12 10:01:05 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:01:05] "GET /api/scheduler/tasks HTTP/1.1" 200 -
+2026-05-12 10:01:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:01:24] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:01:27 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:01:27] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:01:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:01:46] "GET /api/scan/policies HTTP/1.1" 200 -
+2026-05-12 10:01:46 - API - INFO - 成功从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/ip_ranges.txt 加载 69888 个IP范围
+2026-05-12 10:01:46 - API - INFO - 成功从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/redarea.txt 加载 38 个IP范围
+2026-05-12 10:01:46 - API - INFO - 总共加载 69926 个IP范围（从 2 个文件）
+2026-05-12 10:01:46 - API - INFO - 从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/ports.txt 加载了 37 条端口
+2026-05-12 10:01:46 - API - INFO - 从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/excludes.txt 加载了 428 条排除IP
+2026-05-12 10:01:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:01:46] "GET /api/scan/defaults HTTP/1.1" 200 -
+2026-05-12 10:02:05 - TaskScheduler - INFO - 开始添加定时任务: 红区每日扫描, is_active=True
+2026-05-12 10:02:05 - TaskScheduler - INFO - 任务 红区每日扫描 已保存到数据库, ID=23
+2026-05-12 10:02:05 - TaskScheduler - INFO - 任务 红区每日扫描 是活跃状态，开始添加到调度器
+2026-05-12 10:02:05 - TaskScheduler - INFO - 任务 红区每日扫描 触发器创建成功: cron - 0 12 * * *
+2026-05-12 10:02:05 - apscheduler.scheduler - INFO - Added job "TaskScheduler._execute_task" to job store "default"
+2026-05-12 10:02:05 - TaskScheduler - INFO - 任务 红区每日扫描 已添加到APScheduler (misfire_grace_time=86400s)
+2026-05-12 10:02:05 - TaskScheduler - INFO - 任务 红区每日扫描 计算的下次执行时间: 2026-05-12 12:00:00
+2026-05-12 10:02:05 - TaskScheduler - INFO - ✅ 任务 红区每日扫描 的 next_run_time 已更新到数据库: 2026-05-12 12:00:00
+2026-05-12 10:02:05 - TaskScheduler - INFO - 任务已添加到调度器: 红区每日扫描 (ID: 23)
+2026-05-12 10:02:05 - TaskScheduler - INFO - ✅ 任务 红区每日扫描 已成功添加到APScheduler调度器
+2026-05-12 10:02:05 - TaskScheduler - INFO - 添加定时任务完成: 红区每日扫描 (ID: 23)
+2026-05-12 10:02:05 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:02:05] "POST /api/scheduler/tasks HTTP/1.1" 200 -
+2026-05-12 10:02:05 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:02:05] "GET /api/scheduler/tasks HTTP/1.1" 200 -
+2026-05-12 10:02:11 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:02:11] "GET /api/scheduler/tasks HTTP/1.1" 200 -
+2026-05-12 10:02:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:02:24] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:03:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:03:24] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:04:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:04:24] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:05:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:05:24] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:06:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:06:24] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:07:24 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:07:24] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:08:25 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:08:25] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:09:26 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:09:26] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:10:27 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:10:27] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:11:28 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:11:28] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:12:29 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:12:29] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:13:30 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:13:30] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:14:31 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:14:31] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:15:32 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:15:32] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:16:33 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:16:33] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:17:34 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:17:34] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:18:35 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:18:35] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:19:36 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:19:36] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:20:37 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:20:37] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:21:38 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:21:38] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:22:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:22:39] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:23:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:23:40] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:24:41 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:24:41] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:25:42 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:25:42] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:26:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:26:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:27:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:27:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:28:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:28:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:29:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:29:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:30:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:30:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:31:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:31:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:32:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:32:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:33:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:33:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:34:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:34:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:35:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:35:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:36:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:36:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:37:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:37:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:38:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:38:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:39:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:39:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:40:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:40:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:41:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:41:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:42:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:42:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:43:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:43:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:44:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:44:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:45:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:45:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:46:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:46:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:47:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:47:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:48:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:48:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:49:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:49:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:50:43 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:50:43] "GET /api/system/health HTTP/1.1" 200 -
+2026-05-12 10:51:45 - DatabaseManager - INFO - 默认数据初始化完成
+2026-05-12 10:51:45 - apscheduler.scheduler - INFO - Scheduler started
+2026-05-12 10:51:45 - TaskScheduler - INFO - 定时任务调度器已启动，运行状态: True
+2026-05-12 10:51:45 - TaskScheduler - INFO - 加载到 2 个活跃定时任务
+2026-05-12 10:51:45 - TaskScheduler - INFO - 添加定时任务: 红区每日扫描 (ID: 23, 类型: cron, 表达式: 0 12 * * *)
+2026-05-12 10:51:45 - TaskScheduler - INFO - 任务 红区每日扫描 触发器创建成功: cron - 0 12 * * *
+2026-05-12 10:51:45 - apscheduler.scheduler - INFO - Added job "TaskScheduler._execute_task" to job store "default"
+2026-05-12 10:51:45 - TaskScheduler - INFO - 任务 红区每日扫描 已添加到APScheduler (misfire_grace_time=86400s)
+2026-05-12 10:51:45 - TaskScheduler - INFO - 任务 红区每日扫描 的 next_run_time (2026-05-12 12:00:00) 有效，跳过重新计算
+2026-05-12 10:51:45 - TaskScheduler - INFO - 任务已添加到调度器: 红区每日扫描 (ID: 23)
+2026-05-12 10:51:45 - TaskScheduler - INFO - 添加定时任务: 全网日巡检 (ID: 21, 类型: cron, 表达式: 0 22 * * *)
+2026-05-12 10:51:45 - TaskScheduler - INFO - 任务 全网日巡检 触发器创建成功: cron - 0 22 * * *
+2026-05-12 10:51:45 - apscheduler.scheduler - INFO - Added job "TaskScheduler._execute_task" to job store "default"
+2026-05-12 10:51:45 - TaskScheduler - INFO - 任务 全网日巡检 已添加到APScheduler (misfire_grace_time=86400s)
+2026-05-12 10:51:45 - TaskScheduler - INFO - 任务 全网日巡检 的 next_run_time (2026-05-12 22:00:00) 有效，跳过重新计算
+2026-05-12 10:51:45 - TaskScheduler - INFO - 任务已添加到调度器: 全网日巡检 (ID: 21)
+2026-05-12 10:51:45 - TaskScheduler - INFO - 当前调度器中有 2 个任务
+2026-05-12 10:51:45 - TaskScheduler - INFO -   - task_23: next_run_time=2026-05-12 12:00:00
+2026-05-12 10:51:45 - TaskScheduler - INFO -   - task_21: next_run_time=2026-05-12 22:00:00
+2026-05-12 10:51:45 - apscheduler.scheduler - INFO - Added job "TaskScheduler._cleanup_blacklist" to job store "default"
+2026-05-12 10:51:45 - TaskScheduler - INFO - 已注册黑名单定期清理任务（每24小时）
+2026-05-12 10:51:45 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.10.104.86:5000
+2026-05-12 10:51:45 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-12 10:51:48 - werkzeug - INFO - 127.0.0.1 - - [12/May/2026 10:51:48] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:51:48 - werkzeug - INFO - 127.0.0.1 - - [12/May/2026 10:51:48] "POST /api/v1/auth/captcha HTTP/1.1" 200 -
+2026-05-12 10:51:48 - werkzeug - INFO - 127.0.0.1 - - [12/May/2026 10:51:48] "[33mGET /api/system/health HTTP/1.1[0m" 404 -
+2026-05-12 10:52:33 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:33] "[33mGET /api/system/health HTTP/1.1[0m" 404 -
+2026-05-12 10:52:38 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:38] "[33mPOST /api/auth/captcha HTTP/1.1[0m" 404 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET / HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET /assets/index-CRwBON8z.js HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET /assets/echarts-DMw7nHbl.js HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET /assets/vue-vendor-BNhlb1ax.js HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET /assets/element-plus-RRWAO0T1.css HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET /assets/index-AmfeAxVW.css HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET /assets/element-plus-CAhf81Yo.js HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET /assets/rolldown-runtime-S-ySWqyJ.js HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET /assets/TOTPSetup-E8z8eoeF.css HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET /assets/TOTPSetup-B7fWEbMh.js HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET /assets/Login-C77WYB5m.js HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "GET /assets/Login-BrxthP4S.css HTTP/1.1" 200 -
+2026-05-12 10:52:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:46] "POST /api/v1/auth/captcha HTTP/1.1" 200 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET / HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET /assets/index-CRwBON8z.js HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET /assets/echarts-DMw7nHbl.js HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET /assets/element-plus-RRWAO0T1.css HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET /assets/rolldown-runtime-S-ySWqyJ.js HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET /assets/element-plus-CAhf81Yo.js HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET /assets/vue-vendor-BNhlb1ax.js HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET /assets/index-AmfeAxVW.css HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET /assets/Login-C77WYB5m.js HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET /assets/TOTPSetup-B7fWEbMh.js HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET /assets/TOTPSetup-E8z8eoeF.css HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "[36mGET /assets/Login-BrxthP4S.css HTTP/1.1[0m" 304 -
+2026-05-12 10:52:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:52:47] "POST /api/v1/auth/captcha HTTP/1.1" 200 -
+2026-05-12 10:53:01 - AuthService - WARNING - 密码错误: admin
+2026-05-12 10:53:01 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:01] "[31m[1mPOST /api/v1/auth/login HTTP/1.1[0m" 401 -
+2026-05-12 10:53:01 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:01] "POST /api/v1/auth/captcha HTTP/1.1" 200 -
+2026-05-12 10:53:15 - AuthService - INFO - 需要TOTP验证: admin
+2026-05-12 10:53:15 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:15] "POST /api/v1/auth/login HTTP/1.1" 200 -
+2026-05-12 10:53:30 - AuthService - INFO - 用户登录成功: admin
+2026-05-12 10:53:30 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:30] "POST /api/v1/auth/login/totp HTTP/1.1" 200 -
+2026-05-12 10:53:30 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:30] "GET /api/v1/auth/csrf-token HTTP/1.1" 200 -
+2026-05-12 10:53:30 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:30] "GET /assets/Dashboard-DezlaD-B.js HTTP/1.1" 200 -
+2026-05-12 10:53:30 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:30] "GET /assets/PageHeader-CC3kXu7_.js HTTP/1.1" 200 -
+2026-05-12 10:53:30 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:30] "GET /assets/PageHeader-BA-50YNQ.css HTTP/1.1" 200 -
+2026-05-12 10:53:30 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:30] "GET /assets/Dashboard-D1Rn7fCA.css HTTP/1.1" 200 -
+2026-05-12 10:53:30 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:30] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:53:30 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:30] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:53:30 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:30] "GET /api/v1/scan/history?limit=5 HTTP/1.1" 200 -
+2026-05-12 10:53:30 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:30] "GET /api/v1/stats HTTP/1.1" 200 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET / HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET /assets/index-CRwBON8z.js HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET /assets/rolldown-runtime-S-ySWqyJ.js HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET /assets/element-plus-RRWAO0T1.css HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET /assets/element-plus-CAhf81Yo.js HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET /assets/echarts-DMw7nHbl.js HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET /assets/index-AmfeAxVW.css HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET /assets/vue-vendor-BNhlb1ax.js HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET /assets/PageHeader-CC3kXu7_.js HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET /assets/Dashboard-DezlaD-B.js HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET /assets/PageHeader-BA-50YNQ.css HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "[36mGET /assets/Dashboard-D1Rn7fCA.css HTTP/1.1[0m" 304 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "GET /api/v1/scan/history?limit=5 HTTP/1.1" 200 -
+2026-05-12 10:53:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:40] "GET /api/v1/stats HTTP/1.1" 200 -
+2026-05-12 10:53:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:46] "GET /assets/Scan-BT528mt1.css HTTP/1.1" 200 -
+2026-05-12 10:53:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:46] "GET /assets/Scan-Bb80Q-qO.js HTTP/1.1" 200 -
+2026-05-12 10:53:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:46] "GET /api/v1/scan/policies HTTP/1.1" 200 -
+2026-05-12 10:53:46 - API - INFO - 成功从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/ip_ranges.txt 加载 69888 个IP范围
+2026-05-12 10:53:46 - API - INFO - 成功从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/redarea.txt 加载 38 个IP范围
+2026-05-12 10:53:46 - API - INFO - 总共加载 69926 个IP范围（从 2 个文件）
+2026-05-12 10:53:46 - API - INFO - 从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/ports.txt 加载了 37 条端口
+2026-05-12 10:53:46 - API - INFO - 从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/excludes.txt 加载了 428 条排除IP
+2026-05-12 10:53:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:46] "GET /api/v1/scan/defaults HTTP/1.1" 200 -
+2026-05-12 10:53:54 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:54] "GET /assets/Settings-jRwCd40_.js HTTP/1.1" 200 -
+2026-05-12 10:53:54 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:54] "[36mGET /assets/TOTPSetup-E8z8eoeF.css HTTP/1.1[0m" 304 -
+2026-05-12 10:53:54 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:54] "GET /assets/Settings-BYYmaye7.css HTTP/1.1" 200 -
+2026-05-12 10:53:54 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:54] "[36mGET /assets/TOTPSetup-B7fWEbMh.js HTTP/1.1[0m" 304 -
+2026-05-12 10:53:54 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:54] "GET /api/v1/config HTTP/1.1" 200 -
+2026-05-12 10:53:54 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:54] "GET /api/v1/mail/config HTTP/1.1" 200 -
+2026-05-12 10:53:54 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:54] "GET /api/v1/webhook/configs HTTP/1.1" 200 -
+2026-05-12 10:53:54 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:53:54] "GET /api/v1/auth/users HTTP/1.1" 200 -
+2026-05-12 10:54:04 - ConfigManager - INFO - 配置已保存到: /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/config.yaml
+2026-05-12 10:54:04 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:04] "POST /api/v1/config HTTP/1.1" 200 -
+2026-05-12 10:54:32 - AuthAPI - INFO - 用户修改密码成功: admin (首次登录: False)
+2026-05-12 10:54:32 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:32] "POST /api/v1/auth/change-password HTTP/1.1" 200 -
+2026-05-12 10:54:37 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:37] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:54:37 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:37] "GET /api/v1/scan/history?limit=5 HTTP/1.1" 200 -
+2026-05-12 10:54:37 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:37] "GET /api/v1/stats HTTP/1.1" 200 -
+2026-05-12 10:54:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:40] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:54:41 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:41] "GET /assets/Scheduler-GNYK_uMc.css HTTP/1.1" 200 -
+2026-05-12 10:54:41 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:41] "GET /assets/Scheduler-HwDRIZMH.js HTTP/1.1" 200 -
+2026-05-12 10:54:41 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:41] "GET /api/v1/scheduler/tasks HTTP/1.1" 200 -
+2026-05-12 10:54:42 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:42] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:54:42 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:42] "GET /api/v1/scan/history?limit=5 HTTP/1.1" 200 -
+2026-05-12 10:54:42 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:42] "GET /api/v1/stats HTTP/1.1" 200 -
+2026-05-12 10:54:45 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:45] "GET /api/v1/config HTTP/1.1" 200 -
+2026-05-12 10:54:45 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:45] "GET /api/v1/webhook/configs HTTP/1.1" 200 -
+2026-05-12 10:54:45 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:45] "GET /api/v1/mail/config HTTP/1.1" 200 -
+2026-05-12 10:54:45 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:54:45] "GET /api/v1/auth/users HTTP/1.1" 200 -
+2026-05-12 10:55:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:55:40] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:56:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:56:40] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:57:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:57:40] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:58:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:58:40] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 10:59:40 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 10:59:40] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 11:00:22 - DatabaseManager - INFO - 默认数据初始化完成
+2026-05-12 11:00:22 - apscheduler.scheduler - INFO - Scheduler started
+2026-05-12 11:00:22 - TaskScheduler - INFO - 定时任务调度器已启动，运行状态: True
+2026-05-12 11:00:22 - TaskScheduler - INFO - 加载到 2 个活跃定时任务
+2026-05-12 11:00:22 - TaskScheduler - INFO - 添加定时任务: 红区每日扫描 (ID: 23, 类型: cron, 表达式: 0 12 * * *)
+2026-05-12 11:00:22 - TaskScheduler - INFO - 任务 红区每日扫描 触发器创建成功: cron - 0 12 * * *
+2026-05-12 11:00:22 - apscheduler.scheduler - INFO - Added job "TaskScheduler._execute_task" to job store "default"
+2026-05-12 11:00:22 - TaskScheduler - INFO - 任务 红区每日扫描 已添加到APScheduler (misfire_grace_time=86400s)
+2026-05-12 11:00:22 - TaskScheduler - INFO - 任务 红区每日扫描 的 next_run_time (2026-05-12 12:00:00) 有效，跳过重新计算
+2026-05-12 11:00:22 - TaskScheduler - INFO - 任务已添加到调度器: 红区每日扫描 (ID: 23)
+2026-05-12 11:00:22 - TaskScheduler - INFO - 添加定时任务: 全网日巡检 (ID: 21, 类型: cron, 表达式: 0 22 * * *)
+2026-05-12 11:00:22 - TaskScheduler - INFO - 任务 全网日巡检 触发器创建成功: cron - 0 22 * * *
+2026-05-12 11:00:22 - apscheduler.scheduler - INFO - Added job "TaskScheduler._execute_task" to job store "default"
+2026-05-12 11:00:22 - TaskScheduler - INFO - 任务 全网日巡检 已添加到APScheduler (misfire_grace_time=86400s)
+2026-05-12 11:00:22 - TaskScheduler - INFO - 任务 全网日巡检 的 next_run_time (2026-05-12 22:00:00) 有效，跳过重新计算
+2026-05-12 11:00:22 - TaskScheduler - INFO - 任务已添加到调度器: 全网日巡检 (ID: 21)
+2026-05-12 11:00:22 - TaskScheduler - INFO - 当前调度器中有 2 个任务
+2026-05-12 11:00:22 - TaskScheduler - INFO -   - task_23: next_run_time=2026-05-12 12:00:00
+2026-05-12 11:00:22 - TaskScheduler - INFO -   - task_21: next_run_time=2026-05-12 22:00:00
+2026-05-12 11:00:22 - apscheduler.scheduler - INFO - Added job "TaskScheduler._cleanup_blacklist" to job store "default"
+2026-05-12 11:00:22 - TaskScheduler - INFO - 已注册黑名单定期清理任务（每24小时）
+2026-05-12 11:00:22 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.10.104.86:5000
+2026-05-12 11:00:22 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-05-12 11:00:25 - werkzeug - INFO - 127.0.0.1 - - [12/May/2026 11:00:25] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET / HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/index-COKLc_3w.js HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/element-plus-C_EL3rG-.css HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/vue-vendor-CNghQNtP.js HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/index-Dxb2H7TP.css HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/rolldown-runtime-S-ySWqyJ.js HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/element-plus-DgRQgr5_.js HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/echarts-DMw7nHbl.js HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/PageHeader-BFxil0NY.js HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/TOTPSetup-BfBHumnI.js HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/Settings-D3IN15fJ.js HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/PageHeader-BA-50YNQ.css HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/TOTPSetup-E8z8eoeF.css HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /assets/Settings-BYYmaye7.css HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /api/v1/webhook/configs HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /api/v1/config HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /api/v1/mail/config HTTP/1.1" 200 -
+2026-05-12 11:00:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:39] "GET /api/v1/auth/users HTTP/1.1" 200 -
+2026-05-12 11:00:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:46] "GET /assets/Dashboard-BArGKPsb.js HTTP/1.1" 200 -
+2026-05-12 11:00:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:46] "GET /assets/Dashboard-D1Rn7fCA.css HTTP/1.1" 200 -
+2026-05-12 11:00:46 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:46] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 11:00:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:47] "GET /api/v1/scan/history?limit=5 HTTP/1.1" 200 -
+2026-05-12 11:00:47 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:47] "GET /api/v1/stats HTTP/1.1" 200 -
+2026-05-12 11:00:58 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:58] "GET /assets/Scan-CE4iBgFT.js HTTP/1.1" 200 -
+2026-05-12 11:00:58 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:58] "GET /assets/Scan-BT528mt1.css HTTP/1.1" 200 -
+2026-05-12 11:00:59 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:59] "GET /api/v1/scan/policies HTTP/1.1" 200 -
+2026-05-12 11:00:59 - API - INFO - 成功从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/ip_ranges.txt 加载 69888 个IP范围
+2026-05-12 11:00:59 - API - INFO - 成功从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/redarea.txt 加载 38 个IP范围
+2026-05-12 11:00:59 - API - INFO - 总共加载 69926 个IP范围（从 2 个文件）
+2026-05-12 11:00:59 - API - INFO - 从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/ports.txt 加载了 37 条端口
+2026-05-12 11:00:59 - API - INFO - 从 /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/excludes.txt 加载了 428 条排除IP
+2026-05-12 11:00:59 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:00:59] "GET /api/v1/scan/defaults HTTP/1.1" 200 -
+2026-05-12 11:01:03 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:03] "GET /assets/Scheduler-BLqgICzt.js HTTP/1.1" 200 -
+2026-05-12 11:01:03 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:03] "GET /assets/Scheduler-GNYK_uMc.css HTTP/1.1" 200 -
+2026-05-12 11:01:04 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:04] "GET /api/v1/scheduler/tasks HTTP/1.1" 200 -
+2026-05-12 11:01:07 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:07] "GET /assets/History-DWV6feHt.js HTTP/1.1" 200 -
+2026-05-12 11:01:07 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:07] "GET /api/v1/scan/history?limit=200 HTTP/1.1" 200 -
+2026-05-12 11:01:09 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:09] "GET /assets/Reports-C05qkNrN.js HTTP/1.1" 200 -
+2026-05-12 11:01:09 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:09] "GET /api/v1/reports HTTP/1.1" 200 -
+2026-05-12 11:01:11 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:11] "GET /assets/Templates-B5SQe5BQ.css HTTP/1.1" 200 -
+2026-05-12 11:01:11 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:11] "GET /assets/Templates-BdQj0_tX.js HTTP/1.1" 200 -
+2026-05-12 11:01:11 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:11] "GET /api/v1/templates HTTP/1.1" 200 -
+2026-05-12 11:01:14 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:14] "GET /api/v1/config HTTP/1.1" 200 -
+2026-05-12 11:01:14 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:14] "GET /api/v1/mail/config HTTP/1.1" 200 -
+2026-05-12 11:01:14 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:14] "GET /api/v1/webhook/configs HTTP/1.1" 200 -
+2026-05-12 11:01:14 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:14] "GET /api/v1/auth/users HTTP/1.1" 200 -
+2026-05-12 11:01:15 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:15] "GET /api/v1/reports HTTP/1.1" 200 -
+2026-05-12 11:01:26 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:26] "GET /api/v1/scan/history?limit=200 HTTP/1.1" 200 -
+2026-05-12 11:01:32 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:32] "GET /api/v1/reports HTTP/1.1" 200 -
+2026-05-12 11:01:36 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:36] "GET /api/v1/scan/history?limit=200 HTTP/1.1" 200 -
+2026-05-12 11:01:39 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:39] "GET /api/v1/system/health HTTP/1.1" 200 -
+2026-05-12 11:01:48 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:48] "POST /api/v1/scan/history/delete HTTP/1.1" 200 -
+2026-05-12 11:01:48 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:48] "GET /api/v1/scan/history?limit=200 HTTP/1.1" 200 -
+2026-05-12 11:01:58 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:01:58] "GET /api/v1/reports HTTP/1.1" 200 -
+2026-05-12 11:02:01 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:02:01] "GET /api/v1/scan/history?limit=200 HTTP/1.1" 200 -
+2026-05-12 11:02:04 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:02:04] "GET /api/v1/reports HTTP/1.1" 200 -
+2026-05-12 11:02:13 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:02:13] "POST /api/v1/reports/delete HTTP/1.1" 200 -
+2026-05-12 11:02:13 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:02:13] "GET /api/v1/reports HTTP/1.1" 200 -
+2026-05-12 11:02:15 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:02:15] "GET /api/v1/scan/history?limit=200 HTTP/1.1" 200 -
+2026-05-12 11:02:15 - werkzeug - INFO - 10.10.104.86 - - [12/May/2026 11:02:15] "GET /api/v1/scheduler/tasks HTTP/1.1" 200 -

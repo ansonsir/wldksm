@@ -32,7 +32,7 @@ def create_app():
     FRONTEND_DIST = PROJECT_ROOT / 'web' / 'frontend' / 'dist'
     app = Flask(__name__, static_folder=str(FRONTEND_DIST / 'assets'), template_folder='templates')
     CORS(app, resources={
-        r"/api/*": {
+        r"/api/v1/*": {
             "origins": ["http://localhost:5000", "http://127.0.0.1:5000"],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],
@@ -174,7 +174,7 @@ if __name__ == '__main__':
         'script-src': "'self' 'unsafe-inline'",
         'style-src': "'self' 'unsafe-inline'",
         'img-src': "'self' data:",
-        'report-uri': '/api/csp-report',
+        'report-uri': '/api/v1/csp-report',
     }, force_https=False)
 
     limiter.init_app(app)
