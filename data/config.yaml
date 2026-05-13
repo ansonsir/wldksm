@@ -5,10 +5,10 @@ save_result_file: /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/
 template_file: /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/templates/default.docx
 redarea_file: /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/data/redarea.txt
 log_file: /home/yinsongkai/Desktop/杨其顶-work/Code-yang/wldksm/logs/network_scan.log
-max_workers: 10
-ulimit: 15000
+max_workers: 8
+ulimit: 10000
 timeout: 700
-batch_size: 14000
+batch_size: 9000
 ports: null
 report_prefix: ''
 report_suffix: _网络高危端口扫描报告

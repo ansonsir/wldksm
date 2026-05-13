@@ -304,17 +304,42 @@ class ScanExecutor:
             body += f"开放端口: {task.get('total_ports', 0)} 个\n"
             body += f"\n此邮件为系统自动发送，请勿回复。"
 
-            success, message = self.mailer.send_report(
-                report_path=report_path,
-                recipients=recipients,
-                subject=subject,
-                body=body,
-            )
+            # 重试机制：SMTP 连接瞬断等临时错误，最多重试 3 次
+            max_retries = 3
+            retry_delay = 5  # 秒
+            last_error = None
 
-            if success:
-                self.logger.info(f"自动邮件通知发送成功: {', '.join(recipients)}")
-            else:
-                self.logger.error(f"自动邮件通知发送失败: {message}")
+            for attempt in range(1, max_retries + 1):
+                success, message = self.mailer.send_report(
+                    report_path=report_path,
+                    recipients=recipients,
+                    subject=subject,
+                    body=body,
+                )
+
+                if success:
+                    self.logger.info(f"自动邮件通知发送成功: {', '.join(recipients)}")
+                    break
+
+                last_error = message
+                # 判断是否为可重试的临时错误
+                is_transient = any(kw in message.lower() for kw in (
+                    'connection', 'timeout', 'temporarily', 'try again',
+                    'unexpectedly closed', 'broken pipe', 'reset'
+                ))
+
+                if attempt < max_retries and is_transient:
+                    self.logger.warning(
+                        f"自动邮件发送失败（第 {attempt}/{max_retries} 次），"
+                        f"{retry_delay}秒后重试: {message}"
+                    )
+                    time.sleep(retry_delay)
+                else:
+                    if not success:
+                        self.logger.error(
+                            f"自动邮件通知发送失败（已重试 {attempt} 次）: {message}"
+                        )
+                    break
         except Exception as e:
             self.logger.error(f"自动邮件通知异常: {e}")
 

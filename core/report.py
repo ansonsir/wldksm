@@ -131,7 +131,9 @@ class ReportDataAnalyzer:
                         error_count += 1
 
             self.logger.info(f"成功加载 {loaded_count} 条扫描结果，失败 {error_count} 条")
-            return loaded_count > 0
+            # 即使0条结果也算加载成功（扫描完成但未发现高危端口），
+            # 仍需生成报告和发送邮件通知
+            return True
 
         except Exception as e:
             self.logger.error(f"加载扫描结果文件失败: {e}")
